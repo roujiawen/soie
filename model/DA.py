@@ -1,6 +1,9 @@
 import numpy as np
 from math import pi, cos, sin, ceil
-import model.c_code as c_model
+if __name__ == "__main__":
+    import c_code as c_model
+else:
+    import model.c_code as c_model
 
 class Model(object):
     def __init__(self, params, scaling_factor=0.66, periodic_boundary=False):
@@ -168,7 +171,7 @@ def main():
     'Cell Density': 0.5,
     'Angular Inertia': 1.,
     'Alignment Force': 2.5284,
-    'Pinned Cells': ['square', 'ring', 'circle'],
+    'Pinned Cells': ['none', 'none', 'none'],
     'Velocity': [0.085, 0.034, 0.086],
     'Gradient Direction': [0.79, 0.47, 1.83],
     'Alignment Range': 11.1,

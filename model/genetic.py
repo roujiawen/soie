@@ -5,7 +5,7 @@ import concurrent.futures
 import copy_reg
 import types
 
-# DEFAULT_STEPS = 0
+DEFAULT_STEPS = 20
 
 
 
@@ -254,10 +254,12 @@ class Simulation(object):
         # assume the parameter fits into range already
         new_genotype = Genotype(parameters)
         self.insert_new_genotype(new_genotype)
+        self.add_steps(DEFAULT_STEPS)
 
     def randomize(self):
         new_genotype = self.geno_generator.randomize()
         self.insert_new_genotype(new_genotype)
+        self.add_steps(DEFAULT_STEPS)
 
     def restart(self):
         self.update_phenotype()
@@ -322,7 +324,7 @@ class Population(object):
         for each in self.simulations:
             each.insert_new_genotype(new_pop.pop())
 
-        # self.add_steps_all(DEFAULT_STEPS)
+        self.add_steps_all(DEFAULT_STEPS)
 
     def mutate(self, chosen_sim):
         """Change eight simulations into the children of one chosen simulation
@@ -338,7 +340,7 @@ class Population(object):
             if each != chosen_sim:
                 each.insert_new_genotype(children.pop())
 
-        # self.add_steps_all(DEFAULT_STEPS)
+        self.add_steps_all(DEFAULT_STEPS)
 
     def crossover(self, chosen_sims):
         parents = [_.genotype for _ in chosen_sims]
@@ -348,7 +350,7 @@ class Population(object):
             if each not in chosen_sims:
                 each.insert_new_genotype(children.pop())
 
-        # self.add_steps_all(DEFAULT_STEPS)
+        self.add_steps_all(DEFAULT_STEPS)
 
     def insert_from_lib(self, param, chosen_sims):
         for each in chosen_sims:
