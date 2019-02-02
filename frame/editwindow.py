@@ -198,12 +198,12 @@ class QualitativeEditor(Frame):
         self.menu = [OptionMenu(self, _, *__) for _, __ in zip(self.choice, choices)]
 
         for i, each in enumerate(self.menu):
-            each.config(width=8, font=EDIT_BODY_FONT)
-            each.grid(row=0, column=i+1, padx=2)
+            each.config(width=7, font=EDIT_BODY_FONT)
+            each.grid(row=0, column=i+1, padx=0)
 
-        self.columnconfigure(1, minsize=47)
-        self.columnconfigure(2, minsize=47)
-        self.columnconfigure(3, minsize=47)
+        # self.columnconfigure(1, minsize=47)
+        # self.columnconfigure(2, minsize=47)
+        # self.columnconfigure(3, minsize=47)
         self.set_value(values)
 
 
@@ -388,7 +388,7 @@ class EditFrame(Frame):
         temp = Frame(self)
         self.steps_label = Label(temp, textvariable=self.steps_strvar,
             anchor="w", bg=self.cget("bg"), fg=BODY_COLOR, font=BODY_FONT)
-        self.restart_button = Button(temp, text=u"\u21ba", command=self.restart)
+        self.restart_button = Button(temp, text=u"\u21ba", command=self.restart, padx=5)
         self.steps_label.grid(row=0, column=0, sticky="e")
         self.restart_button.grid(row=0, column=1, sticky="w")
         temp.grid(row=0, column=0, ipady=3, padx=(10,0), sticky="w")
@@ -418,7 +418,7 @@ class EditFrame(Frame):
             info = param_info[name]
             if "type" not in info:
                 self.pwidgets[name] = CellParamEditor(self, name, info, params[name])
-                self.pwidgets[name].grid(columnspan=total_columns)
+                self.pwidgets[name].grid(columnspan=total_columns, sticky="w")
             elif info["type"] == "ratio":
                 self.pwidgets[name] = RatioEditor(self, name, info, params[name])
                 self.pwidgets[name].grid(columnspan=total_columns, sticky="w")
@@ -441,8 +441,8 @@ class EditFrame(Frame):
 
         # Randomize and apply
         temp = Frame(self)
-        self.randomize_button = Button(temp, text="Randomize", width=7, command=self.randomize)
-        self.apply_button = Button(temp, text="Apply", width=7, command=self.apply)
+        self.randomize_button = Button(temp, text="Randomize", command=self.randomize, padx=BUTTON_X_MARGIN)
+        self.apply_button = Button(temp, text="Apply", command=self.apply, padx=BUTTON_X_MARGIN)
         self.randomize_button.grid(row=0,column=0, padx=(0,20))
         self.apply_button.grid(row=0, column=1)
         temp.grid(columnspan=2, pady=(20,4))

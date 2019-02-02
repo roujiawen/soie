@@ -32,7 +32,7 @@ class AddStepsWidget(Frame):
 
         self.s.bind("<Command-a>", self.spinbox_select_all)
 
-        self.b = Button(self, text="Go!", command=self.go, bg=self.cget("bg"))
+        self.b = Button(self, text="Go!", command=self.go, bg=self.cget("bg"), padx=BUTTON_X_MARGIN)
 
         self.widgets = [self.l, self.s, self.b]
 

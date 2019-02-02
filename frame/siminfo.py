@@ -171,8 +171,6 @@ class SimInfoFrame(Frame):
         self.grid_propagate(0)
 
         total_columns = 2
-        header_space = 22
-        left_space = 8
         #title
         self.title = Label(self, text="Model Information", bg=self.cget("bg"), fg=H2_COLOR, font=H2_FONT)
         self.title.grid(row=0, column=0, columnspan=total_columns, pady=5)
@@ -189,8 +187,8 @@ class SimInfoFrame(Frame):
         self.columnconfigure(1, weight=1)
         #property
         self.property_label = Label(self, text="Global Properties")
-        self.property_label.grid(columnspan=total_columns, sticky="w", padx=left_space,
-            pady=(header_space,0))
+        self.property_label.grid(columnspan=total_columns, sticky="w", padx=SIM_INFO_LEFT_SPACE,
+            pady=(SIM_INFO_HEADER_SPACE,0))
         self.property_plot = PlotWidget(self, figsize=figsize, dpi=dpi, bg=self.cget("bg"))
         self.property_plot.small_plot()
         self.property_plot.grid(columnspan=total_columns)
@@ -198,8 +196,8 @@ class SimInfoFrame(Frame):
         #main params
         self.params = {}
         self.main_label = Label(self, text="Main Parameters")
-        self.main_label.grid(columnspan=total_columns, sticky="w", padx=left_space,
-            pady=(header_space,0))
+        self.main_label.grid(columnspan=total_columns, sticky="w", padx=SIM_INFO_LEFT_SPACE,
+            pady=(SIM_INFO_HEADER_SPACE,0))
         for name in PARAM["main"]:
             self.params[name] = MainParamWidget(self, name)
             self.params[name].grid(columnspan=total_columns, padx=0)
@@ -207,7 +205,7 @@ class SimInfoFrame(Frame):
         #cell params
         self.cell_label = Label(self, text="Cell Parameters")
         self.cell_label.grid(columnspan=total_columns, sticky="w",
-            pady=(header_space,0), padx=left_space)
+            pady=(SIM_INFO_HEADER_SPACE,0), padx=SIM_INFO_LEFT_SPACE)
         self.cell_table_header = CellParamWidget(self, " ")
         self.cell_table_header.set(CELL_TYPE_LABELS)
         for each in self.cell_table_header.values:
@@ -220,7 +218,7 @@ class SimInfoFrame(Frame):
         #interaction params
         self.interaction_label = Label(self, text="Interaction Parameters")
         self.interaction_label.grid(columnspan=total_columns, sticky="w",
-            pady=(header_space,0), padx=left_space)
+            pady=(SIM_INFO_HEADER_SPACE,0), padx=SIM_INFO_LEFT_SPACE)
         name = PARAM["interaction"][0]
         self.params[name] = InteractionParamWidget(self, name)
         self.params[name].grid(columnspan=total_columns)

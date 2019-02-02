@@ -3,6 +3,7 @@ CELL_TYPE_HEADER_COLOR = "black"
 CELL_TYPE_HEADER_FONT = ("Helvetica", "12", "underline")
 CELL_TYPE_LABELS = ["Blue", "Red", "Green"]
 CELL_COLORS = ["#0000CD", "#DC143C", "#228B22"]
+BUTTON_X_MARGIN = 8
 #APP
 APP_COLOR = "white"
 #PLOTS
@@ -19,6 +20,9 @@ ON_SELECT_COLOR = "#1589C9"
 
 ##########RIGHT FRAME###########
 #SimInfoFrame
+SIM_INFO_HEADER_SPACE = 12
+SIM_INFO_LEFT_SPACE = 8
+
 SIM_INFO_FRAME_COLOR = "#E7E7E7"
 HEADER_FONT = ('Helvetica', "12", "bold")
 HEADER_COLOR = "black"

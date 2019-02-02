@@ -239,9 +239,9 @@ class Simulation(object):
         sf, pb, vt = self.session.pheno_settings
         p = Phenotype(self.genotype, sf, pb)
         self.phenotype = p
-        # self.session.set("models", "state", self, p.state)
-        # self.session.set("models", "step", self, p.step)
-        # self.session.set("models", "properties", self, p.properties)
+        self.session.set("models", "state", self, p.state)
+        self.session.set("models", "step", self, p.step)
+        self.session.set("models", "properties", self, p.properties)
 
     def insert_new_genotype(self, new_genotype):
         # input: a Genotype object
