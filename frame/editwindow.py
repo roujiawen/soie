@@ -405,7 +405,7 @@ class EditFrame(Frame):
             pady=(header_space,0))
 
         for name in PARAM["main"]:
-            if name == "Angular Inertia":
+            #if name == "Angular Inertia":
             self.pwidgets[name] = MainParamEditor(self, name, param_info[name], params[name])
             self.pwidgets[name].grid(columnspan=total_columns, padx=0)
 

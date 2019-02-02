@@ -1,312 +1,58 @@
 {
     "items": {
-        "h2z99fb7": {
-            "Alignment Range": 5.33,
-            "Alignment Force": 1000.0,
-            "Interaction Force": 0.0,
-            "Gradient Intensity": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "Cell Ratio": [
-                1.0,
-                0.0,
-                0.0
-            ],
+        "mtwaagcb": {
+            "Alignment Range": 18.6,
+            "Alignment Force": 0.2201,
             "Pinned Cells": [
                 "none",
                 "none",
                 "none"
             ],
-            "Noise Intensity": 0.016,
-            "Adhesion": [
-                [
-                    0.01,
-                    0.01,
-                    0.01
-                ],
-                [
-                    0.01,
-                    0.01,
-                    0.01
-                ],
-                [
-                    0.01,
-                    0.01,
-                    0.01
-                ]
-            ],
-            "Velocity": [
-                0.024,
-                0.005,
-                0.005
-            ],
-            "Cell Density": 0.06,
-            "Gradient Direction": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "Interaction Range": 1.01
-        },
-        "6y2lb22h": {
-            "Alignment Range": 1.01,
-            "Alignment Force": 0.0,
-            "Interaction Force": 0.0038,
+            "Interaction Force": 4.3107,
             "Gradient Intensity": [
                 0.0,
-                0.0,
-                0.0
+                0.59,
+                0.82
             ],
             "Cell Ratio": [
-                0.95,
-                0.05,
+                0.36,
+                0.64,
                 0.0
             ],
-            "Pinned Cells": [
-                "none",
-                "none",
-                "none"
-            ],
-            "Noise Intensity": 0.3,
             "Adhesion": [
                 [
-                    1.0,
-                    1.41,
-                    0.01
+                    3.9499999999999997,
+                    0.91,
+                    0.73
                 ],
                 [
-                    1.41,
-                    2.0,
-                    0.01
+                    0.91,
+                    1.65,
+                    0.77
                 ],
                 [
-                    0.01,
-                    0.01,
-                    0.01
+                    0.73,
+                    0.77,
+                    2.1799999999999997
                 ]
             ],
+            "Noise Intensity": 0.5,
+            "Angular Inertia": 4.5118,
             "Velocity": [
-                0.038,
-                0.038,
-                0.005
+                0.029,
+                0.07100000000000001,
+                0.053
             ],
-            "Cell Density": 0.23,
+            "Cell Density": 0.84,
             "Gradient Direction": [
-                0.0,
-                0.0,
-                0.0
+                1.13,
+                1.63,
+                1.72
             ],
-            "Interaction Range": 4.42
-        },
-        "e2nlo168": {
-            "Alignment Range": 26.66,
-            "Alignment Force": 1000.0,
-            "Interaction Force": 0.0,
-            "Gradient Intensity": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "Cell Ratio": [
-                1.0,
-                0.0,
-                0.0
-            ],
-            "Pinned Cells": [
-                "none",
-                "none",
-                "none"
-            ],
-            "Noise Intensity": 0.016,
-            "Adhesion": [
-                [
-                    0.01,
-                    0.01,
-                    0.01
-                ],
-                [
-                    0.01,
-                    0.01,
-                    0.01
-                ],
-                [
-                    0.01,
-                    0.01,
-                    0.01
-                ]
-            ],
-            "Velocity": [
-                0.12,
-                0.005,
-                0.005
-            ],
-            "Cell Density": 0.06,
-            "Gradient Direction": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "Interaction Range": 1.01
-        },
-        "qfwodsec": {
-            "Alignment Range": 1.01,
-            "Alignment Force": 0.0,
-            "Interaction Force": 0.0038,
-            "Gradient Intensity": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "Cell Ratio": [
-                0.5,
-                0.5,
-                0.0
-            ],
-            "Pinned Cells": [
-                "none",
-                "none",
-                "none"
-            ],
-            "Noise Intensity": 0.3,
-            "Adhesion": [
-                [
-                    1.0,
-                    1.41,
-                    0.01
-                ],
-                [
-                    1.41,
-                    2.0,
-                    0.01
-                ],
-                [
-                    0.01,
-                    0.01,
-                    0.01
-                ]
-            ],
-            "Velocity": [
-                0.038,
-                0.038,
-                0.005
-            ],
-            "Cell Density": 0.23,
-            "Gradient Direction": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "Interaction Range": 4.43
-        },
-        "13r0mqsu": {
-            "Alignment Range": 1.01,
-            "Pinned Cells": [
-                "none",
-                "none",
-                "none"
-            ],
-            "Interaction Force": 0.0038,
-            "Gradient Intensity": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "Cell Ratio": [
-                0.05,
-                0.95,
-                0.0
-            ],
-            "Alignment Force": 0.0,
-            "Noise Intensity": 0.3,
-            "Adhesion": [
-                [
-                    1.0,
-                    1.41,
-                    0.01
-                ],
-                [
-                    1.41,
-                    2.0,
-                    0.01
-                ],
-                [
-                    0.01,
-                    0.01,
-                    0.01
-                ]
-            ],
-            "Gradient Direction": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "Cell Density": 0.23,
-            "Velocity": [
-                0.038,
-                0.038,
-                0.005
-            ],
-            "Interaction Range": 4.42
-        },
-        "37go0kxt": {
-            "Alignment Range": 19.05,
-            "Pinned Cells": [
-                "none",
-                "none",
-                "none"
-            ],
-            "Interaction Force": 0.0,
-            "Gradient Intensity": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "Cell Ratio": [
-                1.0,
-                0.0,
-                0.0
-            ],
-            "Alignment Force": 1000.0,
-            "Noise Intensity": 0.32,
-            "Adhesion": [
-                [
-                    0.01,
-                    0.01,
-                    0.01
-                ],
-                [
-                    0.01,
-                    0.01,
-                    0.01
-                ],
-                [
-                    0.01,
-                    0.01,
-                    0.01
-                ]
-            ],
-            "Gradient Direction": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "Cell Density": 0.06,
-            "Velocity": [
-                0.086,
-                0.005,
-                0.005
-            ],
-            "Interaction Range": 1.01
+            "Interaction Range": 15.0
         }
     },
     "loc": {
-        "1": "13r0mqsu",
-        "0": "qfwodsec",
-        "3": "37go0kxt",
-        "2": "6y2lb22h",
-        "5": "e2nlo168",
-        "4": "h2z99fb7"
+        "0": "mtwaagcb"
     }
 }

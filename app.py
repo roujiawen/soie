@@ -1,5 +1,8 @@
 from Tkinter import *
 import ttk
+import os
+import pickle
+from copy import copy, deepcopy
 from common.styles import *
 from common.tools import read_json, delete_all_genes, is_within
 from frame.top import ButtonsFrame, MutateFrame, CrossFrame, InsertLibFrame
@@ -9,10 +12,8 @@ from frame.simulations import SimsFrame
 from menu.menubar import MenuBar
 from model.genetic import Population, GenoGenerator
 from common.parameters import PARAM_INFO
-from copy import copy, deepcopy
-import os
 
-RECORD_PATH = os.path.join(os.path.dirname(__file__), "customdata/record.py")
+RECORD_PATH = os.path.join(os.path.dirname(__file__), "customdata/record.pkl")
 
 class SessionData(object):
     """
@@ -98,12 +99,12 @@ class SessionData(object):
         self.write()
 
     def write(self):
-        combined = {"models":self.models,
+        record_data = {"models":self.models,
         "general_settings":self.general_settings,
         "param_info":self.param_info,
         "advanced_mutate":self.advanced_mutate}
-        with open(RECORD_PATH, "w") as f:
-            f.write("inf=float('inf')\nRECORD_DATA="+str(combined))
+        with open(RECORD_PATH, "wb") as pickled_file:
+            pickle.dump(record_data, pickled_file)
 
     @property
     def movement(self):
@@ -151,9 +152,10 @@ class App(Frame):
         flag=False
         # Read record data
         if os.path.exists(RECORD_PATH):
-            from customdata.record import RECORD_DATA
+            with open(RECORD_PATH, "rb") as pickled_file:
+                record_data = pickle.load(pickled_file)
             for each in ["param_info","general_settings", "advanced_mutate"]:
-                setattr(session, each, RECORD_DATA[each])
+                setattr(session, each, record_data[each])
             flag=True
         else:
             from common.parameters import GENERAL_SETTINGS, ADVANCED_MUTATE
@@ -203,7 +205,7 @@ class App(Frame):
 
         try:
             if flag==True:
-                for subattr, model_info in RECORD_DATA["models"].items():
+                for subattr, model_info in record_data["models"].items():
                     for sim, i in zip(sims, range(9)):
                         session.set("models", subattr, sim, model_info[i])
                 self.population.load_prev_session()
