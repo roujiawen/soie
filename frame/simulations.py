@@ -17,7 +17,10 @@ class GraphFrame(Frame):
         self.state="NORMAL"
         self.double_clicked = False
 
-        self.widget = PlotWidget(self, figsize=figsize, dpi=dpi, no_edge=True, axis="off", xlim=[0, AXIS_LIMIT], ylim=[0, AXIS_LIMIT])
+        scale_factor = session.sf
+        adjusted_limit = AXIS_LIMIT / scale_factor
+        self.widget = PlotWidget(self, figsize=figsize, dpi=dpi, no_edge=True, axis="off",
+            xlim=[0, adjusted_limit], ylim=[0, adjusted_limit])
         self.dots = (figsize[0]*dpi)**2
 
         highlight_thickness = 4

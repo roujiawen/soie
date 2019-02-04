@@ -1,15 +1,21 @@
 import numpy as np
-from math import pi, cos, sin, ceil
+from math import pi, cos, sin, ceil, sqrt
+from collections import OrderedDict
+
 if __name__ == "__main__":
     import c_code as c_model
 else:
     import model.c_code as c_model
 
+CORE_RADIUS = 0.1
+FIELD_SIZE = 10.0
+N_GLOBAL_STATS = 2
+
 class Model(object):
-    def __init__(self, params, scaling_factor=0.66, periodic_boundary=False):
+    def __init__(self, params, scale_factor=0.66, periodic_boundary=False):
         self.order_parameters = []
         self.group_angular_momentum = []
-        self.params = params
+        self.user_params = params
 
         # Periodic boundary settings
         if periodic_boundary is False:
@@ -17,79 +23,99 @@ class Model(object):
         else:
             self.tick = self.pb_tick
 
-        # Adjust for scaling factor
-        sf = self.scaling_factor = scaling_factor
-        params["core_radius"] = 0.15 * sf
-        params["Interaction Range"] *= params["core_radius"]
-        params["Alignment Range"] *= params["core_radius"]
+        self.internal_params = self.gen_internal_params(scale_factor)
 
-        ntypes = params['num_of_types'] = len(params["Cell Ratio"])
-        for i in range(ntypes):
-            params["Velocity"][i] *=sf
+    def gen_internal_params(self, scale_factor):
+        """
+        Formatting user-provided parameters into internal parameters accepted
+        by the C++ program.
+        """
+        # Name shortening for frequent variables
+        uprm = self.user_params
 
-        # Set simulation field and grid size
-        params['xlim'] = 10.
-        params['ylim'] = 10.
+        # FORMATTING INTERNAL PARAMS
+        # Particle core radius
+        r0 = CORE_RADIUS
+        # Calculate number of particles
+        max_num_particles = 10**4/(2*sqrt(3)) / (scale_factor)**2
+        nop = int(uprm['Cell Density'] * max_num_particles)
+        # Calculate actual field size (scaled)
+        xlim = ylim = FIELD_SIZE / float(scale_factor)
+        # Calculate force and alignment radii
+        r1 = uprm['Interaction Range'] * CORE_RADIUS
+        ra = uprm['Alignment Range'] * CORE_RADIUS
+        # Just copying
+        inert = uprm['Angular Inertia']
+        f0 = uprm['Interaction Force']
+        fa = uprm['Alignment Force']
+        nint = uprm['Noise Intensity']
+        # Change type
+        v0 = np.array(uprm["Velocity"])
+        beta = np.array(uprm["Adhesion"])
+        # Pinned = 0 (none) or 1 (fixed)
+        pinned = np.array([0 if x == "none" else 1 for x in uprm["Pinned Cells"]]
+                          ).astype(np.int32)
+        # Convert ratio to cutoff
+        counts = [int(round(nop*each)) for each in uprm["Cell Ratio"][:2]]
+        counts.append(nop - sum(counts)) # Last type
+        cutoff = np.array([sum(counts[:i+1]) for i in range(len(counts))]
+                          ).astype(np.int32) # Cumulative
+        # Gradient from polar to cartesian
+        grad_x = np.array([np.cos(d*pi) * i for d, i
+                in zip(uprm["Gradient Direction"], uprm["Gradient Intensity"])])
+        grad_y = np.array([np.sin(d*pi) * i for d, i
+                in zip(uprm["Gradient Direction"], uprm["Gradient Intensity"])])
 
-        nop = params['num_of_particles'] = int(params["Cell Density"]*
-            (params['xlim']/float(2*params["core_radius"]))*
-            (params['ylim']/float(np.sqrt(3)*params["core_radius"])))
+        names = [
+            'nop', 'xlim', 'ylim',
+            'r0', 'r1', 'ra', # radii
+            'inert', 'f0', 'fa','nint', # strengths
+            'v0', 'pinned', 'cutoff', 'beta', 'grad_x', 'grad_y' # arrays
+            ]
+        internal_params = OrderedDict([(x, locals()[x]) for x in names])
+        return internal_params
 
-        ### Set cell types
+    def init_particles_state(self):
+        """
+        Initialize a system of particles given params
+        """
+        iprm, uprm = self.internal_params, self.user_params
+        nop, xlim, ylim = iprm['nop'], iprm['xlim'], iprm['ylim']
+        cutoff = iprm['cutoff']
 
-        counts = [int(round(nop*params["Cell Ratio"][i])) for i in xrange(3)]
-        counts[2] = nop - counts[0] - counts[1]
-        self.type_counts = counts
-        cutoff = np.array([sum(counts[:i]) for i in xrange(4)]).astype(np.int32)
-        self.type_slice = [slice(cutoff[i], cutoff[i+1]) for i in xrange(3)]
-
-        ### Set gradient values
-        grad_x = np.array([np.cos(d*np.pi) * i for d, i in zip(params["Gradient Direction"], params["Gradient Intensity"])])
-        grad_y = np.array([np.sin(d*np.pi) * i for d, i in zip(params["Gradient Direction"], params["Gradient Intensity"])])
-
-        # Fix cell
-        pinned = np.array([0 if x == "none" else 1 for x in params["Pinned Cells"]]).astype(np.int32)
-
-        v0 = np.array(params["Velocity"])
-        beta = np.array(params["Adhesion"])
-
-        self.cparams = [nop, params['xlim'], params['ylim'],
-            params["core_radius"], params["Interaction Range"], params["Alignment Range"], params["Angular Inertia"],
-            params["Interaction Force"], params["Alignment Force"], params["Noise Intensity"],
-            v0, pinned, cutoff[1:3], beta, grad_x, grad_y]
-
-    def random_initialization(self):
-        params = self.params
-        nop, ntypes = params["num_of_particles"], params["num_of_types"]
-        xlim, ylim = params["xlim"], params["ylim"]
         # Randomize position
-        self.x = np.random.random(nop) * xlim
-        self.y = np.random.random(nop) * ylim
+        x_position = np.random.random(nop) * xlim
+        y_position = np.random.random(nop) * ylim
 
         # Randomize velocity
         theta = np.random.random(nop) * 2 * pi
-        self.dir_x = np.cos(theta)
-        self.dir_y = np.sin(theta)
+        x_velocity = np.cos(theta)
+        y_velocity = np.sin(theta)
+
         # For different types
-        for i in range(ntypes):
-            self.dir_x[self.type_slice[i]] *= params["Velocity"][i]
-            self.dir_y[self.type_slice[i]] *= params["Velocity"][i]
+        bd = [0] + list(iprm['cutoff'])
+        types = [slice(bd[i-1], bd[i]) for i in range(1, len(bd))]
+        for type_, v in zip(types, iprm["v0"]):
+            x_velocity[type_] *= v
+            y_velocity[type_] *= v
 
         # Randomize pinned shape
-        for i, pinned_shape in enumerate(params["Pinned Cells"]):
+        for type_, pinned_shape in zip(types, uprm["Pinned Cells"]):
             if pinned_shape != "none":
-                slice_, n = self.type_slice[i], self.type_counts[i]
+                n = type_.stop - type_.start # length of the slice
                 if pinned_shape == "ring":
-                    radius = xlim * (0.3+np.random.random(n)*0.1) # Radius = 30%-40% of field size
+                    # Radius = 30%-40% of field size
+                    radius = xlim * (0.3+np.random.random(n)*0.1)
                     theta = 2 * np.random.random(n) * pi
-                    self.x[slice_] = xlim/2. + np.cos(theta)*radius
-                    self.y[slice_] = ylim/2. + np.sin(theta)*radius
+                    x_position[type_] = xlim/2. + np.cos(theta)*radius
+                    y_position[type_] = ylim/2. + np.sin(theta)*radius
 
                 elif pinned_shape == "circle":
-                    radius = xlim * 0.2 * np.random.power(2, n) # 0-20% of field size
+                    # 0-20% of field size
+                    radius = xlim * 0.2 * np.random.power(2, n)
                     theta = 2 * np.random.random(n) * pi
-                    self.x[slice_] = xlim/2. + np.cos(theta)*radius
-                    self.y[slice_] = ylim/2. + np.sin(theta)*radius
+                    x_position[type_] = xlim/2. + np.cos(theta)*radius
+                    y_position[type_] = ylim/2. + np.sin(theta)*radius
 
                 elif pinned_shape == "square":
                     # radius ~ 40-50% of field size
@@ -100,47 +126,67 @@ class Model(object):
                     is_0 = side == 0
                     temp_x[is_0], temp_y[is_0] = depth[is_0], coord[is_0]
                     is_1 = side == 1
-                    temp_x[is_1], temp_y[is_1] = xlim - depth[is_1], coord[is_1] + 0.1*ylim
+                    temp_x[is_1], temp_y[is_1] = xlim-depth[is_1], coord[is_1]+0.1*ylim
                     is_2 = side == 2
-                    temp_x[is_2], temp_y[is_2] = coord[is_2] + 0.1*xlim, depth[is_2]
+                    temp_x[is_2], temp_y[is_2] = coord[is_2]+0.1*xlim, depth[is_2]
                     is_3 = side == 3
                     temp_x[is_3], temp_y[is_3] = coord[is_3], ylim - depth[is_3]
-                    self.x[slice_] = temp_x
-                    self.y[slice_] = temp_y
+                    x_position[type_] = temp_x
+                    y_position[type_] = temp_y
+
+        self.x, self.y, self.dir_x, self.dir_y = x_position, y_position, x_velocity, y_velocity
 
     def fb_tick(self):
-        c_model.fb_tick(*self.cparams+[self.x, self.y, self.dir_x, self.dir_y])
-        self.update_global_parameters()
+        c_model.fb_tick(*self.internal_params.values()+[self.x, self.y, self.dir_x, self.dir_y])
+        self.calc_global_stats()
 
     def pb_tick(self):
-        c_model.pb_tick(*self.cparams+[self.x, self.y, self.dir_x, self.dir_y])
-        self.update_global_parameters()
+        c_model.pb_tick(*self.internal_params.values()+[self.x, self.y, self.dir_x, self.dir_y])
+        self.calc_global_stats()
 
-    def update_global_parameters(self):
-        params = self.params
-        nop, ntypes, v0 = params['num_of_particles'], params["num_of_types"], params["Velocity"]
-        rGr_x = np.sum(self.x)/float(nop)
-        rGr_y = np.sum(self.y)/float(nop)
-        r_x = self.x - rGr_x
-        r_y = self.y - rGr_y
+    def calc_global_stats(self):
+        """
+        INPUT:  cparams: list of int/float/nparrays
+                state : list of four arrays
+        OUTPUT: global_stats_slice : np.array((N_GLOBAL_STATS))
+                    #0: Group angular momentum
+                    #1: Orderness
+        """
+        global_stats_slice = np.empty((N_GLOBAL_STATS))
+
+        x_position, y_position, x_velocity, y_velocity = self.x, self.y, self.dir_x, self.dir_y
+        iprm = self.internal_params
+        nop, cutoff, v0 = iprm["nop"], iprm["cutoff"], iprm["v0"]
+
+        # Group angular momentum
+        rGr_x = np.sum(x_position)/float(nop)
+        rGr_y = np.sum(y_position)/float(nop)
+        r_x = x_position - rGr_x
+        r_y = y_position - rGr_y
         v_x = np.empty(nop)
         v_y = np.empty(nop)
-        for i in range(ntypes):
-            v_x[self.type_slice[i]] = self.dir_x[self.type_slice[i]]/v0[i]
-            v_y[self.type_slice[i]] = self.dir_y[self.type_slice[i]]/v0[i]
+        start_index = 0
+        for i, end_index in enumerate(cutoff):
+            v_x[start_index:end_index] = x_velocity[start_index:end_index]/v0[i]
+            v_y[start_index:end_index] = y_velocity[start_index:end_index]/v0[i]
+            start_index = end_index
         product = np.cross([r_x, r_y], [v_x, v_y], axisa=0, axisb=0)
-        self.group_angular_momentum.append(np.sum(product)/float(nop))
+        global_stats_slice[0] = np.sum(product)/float(nop)
 
+        # Orderness
         x_sum = np.sum(v_x)
         y_sum = np.sum(v_y)
         d = (x_sum*x_sum + y_sum*y_sum)**0.5
-        self.order_parameters.append(d/float(nop))
+        global_stats_slice[1] = d/float(nop)
+
+        self.group_angular_momentum.append(global_stats_slice[0])
+        self.order_parameters.append(global_stats_slice[1])
 
     def set(self, state, properties):
         """
         coords, vlcty: [[[x],[y]],[blue], [green]]
         """
-        ntypes = self.params["num_of_types"]
+        ntypes = len(self.internal_params["cutoff"])
         coords, vlcty = state
         self.order_parameters, self.group_angular_momentum = properties
 
@@ -150,15 +196,16 @@ class Model(object):
         self.dir_y = np.concatenate([vlcty[i][1] for i in range(ntypes)])
 
     def get(self):
-        ntypes = self.params["num_of_types"]
+        cutoff = self.internal_params["cutoff"]
         x, y, dir_x, dir_y = self.x, self.y, self.dir_x, self.dir_y
-        slices = self.type_slice
         coords = []
         vlcty = []
 
-        for i in xrange(ntypes):
-            coords.append([list(x[slices[i]]), list(y[slices[i]])])
-            vlcty.append([list(dir_x[slices[i]]), list(dir_y[slices[i]])])
+        start_index = 0
+        for i, end_index in enumerate(cutoff):
+            coords.append([list(x[start_index:end_index]), list(y[start_index:end_index])])
+            vlcty.append([list(dir_x[start_index:end_index]), list(dir_y[start_index:end_index])])
+            start_index = end_index
 
         return (coords, vlcty)
 
@@ -182,7 +229,7 @@ def main():
     'Interaction Range': 10.2}
 
     m = Model(params)
-    m.random_initialization()
+    m.init_particles_state()
     for i in range(25):
         if i % 100 == 0:
             print "step", i

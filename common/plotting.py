@@ -42,12 +42,12 @@ class PlotWidget(object):
         self.widget = self.canvas.get_tk_widget()
 
     def plot_sim(self, session, sim, dots):
-        scaling_factor, velocity_trace = session.sf, session.vt
+        scale_factor, velocity_trace = session.sf, session.vt
         new_graph_data = session.models["state"][sim]
         coords, vlcty = new_graph_data
         colors = CELL_COLORS
         self.clear()
-        s = dots/100. * 3.14 * (0.15 * scaling_factor)**2
+        s = dots/100. * 3.14 * (0.15 * scale_factor)**2
         multiplier = velocity_trace[0]
         alpha = velocity_trace[1]
         for i, pair in enumerate(coords):
@@ -61,7 +61,8 @@ class PlotWidget(object):
                 self.add_collection(ln_coll)
             self.scatter(pair[0], pair[1], s=s, color=colors[i],linewidths=0, alpha=CELL_ALPHA[i])
         self.axis('off')
-        self.set_axis_limits([0,AXIS_LIMIT], [0,AXIS_LIMIT])
+        adjusted_limit = AXIS_LIMIT / scale_factor
+        self.set_axis_limits([0, adjusted_limit], [0, adjusted_limit])
         self.draw()
 
     def plot_properties(self, session, sim):

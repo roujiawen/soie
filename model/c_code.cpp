@@ -612,52 +612,52 @@ PyObject* catchall_to_py(PyObject* obj)
 }
 
 
-int cellType(int cellId, int* cutoff) {
-    if (cellId > cutoff[1]) {
-        return 2;
-    } else if (cellId < cutoff[0]) {
-        return 0;
-    } else {
-        return 1;
+    int cellType(int cellId, int* cutoff) {
+        if (cellId > cutoff[1]) {
+            return 2;
+        } else if (cellId < cutoff[0]) {
+            return 0;
+        } else {
+            return 1;
+        }
     }
-}
-
-double fb_dist(double x1, double y1, double x2, double y2) {
-    double r = sqrt(pow((x1-x2),2) + pow((y1-y2),2));
-    return r;
-}
-
-double fb_fitInto(double v, double upper) {
-    if (v > upper) {
-        return upper;
-    } else if (v < 0.) {
-        return 0.;
-    } else {
-        return v;
+    
+    double fb_dist(double x1, double y1, double x2, double y2) {
+        double r = sqrt(pow((x1-x2),2) + pow((y1-y2),2));
+        return r;
     }
-}
-
-double pb_dist(double x1, double x2, double size_x) {
-    double x = x2-x1;
-    if (x > size_x/2.){
-    x -= size_x;
-    } else if (x < -size_x/2.){
-    x += size_x;
+    
+    double fb_fitInto(double v, double upper) {
+        if (v > upper) {
+            return upper;
+        } else if (v < 0.) {
+            return 0.;
+        } else {
+            return v;
+        }
     }
+    
+    double pb_dist(double x1, double x2, double size_x) {
+        double x = x2-x1;
+        if (x > size_x/2.){
+        x -= size_x;
+        } else if (x < -size_x/2.){
+        x += size_x;
+        }
 
-    return x;
-}
-
-double pb_fitInto(double v, double upper) {
-    if (v >= upper) {
-        return v-upper;
-    } else if (v < 0.) {
-        return v+upper;
-    } else {
-        return v;
+        return x;
     }
-}
-
+    
+    double pb_fitInto(double v, double upper) {
+        if (v >= upper) {
+            return v-upper;
+        } else if (v < 0.) {
+            return v+upper;
+        } else {
+            return v;
+        }
+    }
+    
 
 static PyObject* fb_tick(PyObject*self, PyObject* args, PyObject* kywds)
 {
@@ -826,123 +826,123 @@ static PyObject* fb_tick(PyObject*self, PyObject* args, PyObject* kywds)
         v_y_used = 1;
         /*<function call here>*/     
         
-        int i;
-        int j;
-        int ctype;
-        double r;
-        double temp;
-        double noise;
-        double c;
-        double s;
-        double f_x;
-        double f_y;
-        double avgdir_x;
-        double avgdir_y;
-        int inf_count;
+            int i;
+            int j;
+            int ctype;
+            double r;
+            double temp;
+            double noise;
+            double c;
+            double s;
+            double f_x;
+            double f_y;
+            double avgdir_x;
+            double avgdir_y;
+            int inf_count;
         
-        for (i = 0; i < n; i++)
-        {
-            ctype = cellType(i, cutoff);
-            if (pinned[ctype] == 0) {
-                // Initiate interaction forces
-                f_x = 0;
-                f_y = 0;
-                inf_count = 0;
-                // Initiate alignment forces
-                avgdir_x = 0;
-                avgdir_y = 0;
+            for (i = 0; i < n; i++)
+            {
+                ctype = cellType(i, cutoff);
+                if (pinned[ctype] == 0) {
+                    // Initiate Attraction-Repulsion Strengths
+                    f_x = 0;
+                    f_y = 0;
+                    inf_count = 0;
+                    // Initiate Alignment Strengths
+                    avgdir_x = 0;
+                    avgdir_y = 0;
         
-                for (j = 0; j < n; j++)
-                {
-                    if (i != j) {
+                    for (j = 0; j < n; j++)
+                    {
                         r = fb_dist(pos_x[i], pos_y[i], pos_x[j], pos_y[j]);
-                        //INTERACTION FORCE
-                        if (r <= r1) {
-                            if (r < r0) {
-                                //Infinite repulsion
-                                if (inf_count == 0) {
-                                    f_x = 0;
-                                    f_y = 0;
-                                } 
-                                inf_count++;
-                                if (r > 0) {//Avoid dividing by zero
-                                    f_x += (pos_x[i]-pos_x[j])/r;
-                                    f_y += (pos_y[i]-pos_y[j])/r;
+                        //Attraction-Repulsion Strength
+                        if (i != j) {
+                            if (r <= r1) {
+                                if (r < r0) {
+                                    //Infinite repulsion
+                                    if (inf_count == 0) {
+                                        f_x = 0;
+                                        f_y = 0;
+                                    }
+                                    inf_count++;
+                                    if (r > 0) {//Avoid dividing by zero
+                                        f_x += (pos_x[i]-pos_x[j])/r;
+                                        f_y += (pos_y[i]-pos_y[j])/r;
+                                    }
+                                } else {
+                                    //Equilibrium attraction and repulsion
+                                    if (inf_count == 0){
+                                        temp = -f0 + (r-r0)/(r1-r0)*(1+beta[ctype*3+cellType(j, cutoff)])*f0;
+                                        f_x += temp*(pos_x[j]-pos_x[i])/r;
+                                        f_y += temp*(pos_y[j]-pos_y[i])/r;
+                                    }
                                 }
-                            } else {
-                                //Equilibrium attraction and repulsion
-                                if (inf_count == 0){
-                                    temp = -f0 + (r-r0)/(r1-r0)*(1+beta[ctype*3+cellType(j, cutoff)])*f0;
-                                    f_x += temp*(pos_x[j]-pos_x[i])/r;
-                                    f_y += temp*(pos_y[j]-pos_y[i])/r;
-                                }
-                            } 
+                            }
                         }
-                        //ALIGNMENT FORCE
+                        //Alignment Strength
                         if (r <= rv) {
                             temp = sqrt(pow(v_x[j],2) + pow(v_y[j],2));
                             if (temp > 0) {
                                 avgdir_x += v_x[j]/temp;
                                 avgdir_y += v_y[j]/temp;
                             }
-                        }            
+                        }
                     }
+        
+                    // ANGULAR INERTIA
+                    v_x[i] *= inert;
+                    v_y[i] *= inert;
+        
+                    // INTERACTION
+                    if (inf_count > 0) {
+                        f_x = f_x/inf_count*10000;
+                        f_y = f_y/inf_count*10000;
+                    }
+                    v_x[i] += f_x;
+                    v_y[i] += f_y;
+        
+                    // ALIGNMENT
+                    temp = sqrt(pow(avgdir_x,2) + pow(avgdir_y,2));
+                    if (temp > 0) {//Avoid dividing by zero
+                        avgdir_x /= temp;
+                        avgdir_y /= temp;
+                    }
+                    v_x[i] += fa * avgdir_x;
+                    v_y[i] += fa * avgdir_y;
+        
+                    //GRADIENT
+                    v_x[i] += grad_x[ctype];
+                    v_y[i] += grad_y[ctype];
+        
+                    //NORMALIZE into unit vector (contain angle info)
+                    temp = sqrt(pow(v_x[i],2) + pow(v_y[i],2));
+                    if (temp > 0) {//Avoid dividing by zero
+                        v_x[i] /= temp;
+                        v_y[i] /= temp;
+                    }
+        
+                    //NOISE
+                    noise = nint*M_PI*((static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*2-1);
+                    c = cos(noise);
+                    s = sin(noise);
+                    temp = v_x[i];
+                    v_x[i] = v0[ctype]*(v_x[i]*c - v_y[i]*s);
+                    v_y[i] = v0[ctype]*(temp*s + v_y[i]*c);
                 }
-                
-                // ANGULAR INERTIA
-                v_x[i] *= inert;
-                v_y[i] *= inert;
-        
-                // INTERACTION
-                if (inf_count > 0) {
-                    f_x = f_x/inf_count*10000;
-                    f_y = f_y/inf_count*10000;
-                }
-                v_x[i] += f_x;
-                v_y[i] += f_y;
-        
-                // ALIGNMENT
-                temp = sqrt(pow(avgdir_x,2) + pow(avgdir_y,2));
-                if (temp > 0) {//Avoid dividing by zero
-                    avgdir_x /= temp;
-                    avgdir_y /= temp;
-                }
-                v_x[i] += fa * avgdir_x;
-                v_y[i] += fa * avgdir_y;
-        
-                //GRADIENT
-                v_x[i] += grad_x[ctype];
-                v_y[i] += grad_y[ctype];
-        
-                //NORMALIZE into unit vector (contain angle info)
-                temp = sqrt(pow(v_x[i],2) + pow(v_y[i],2));
-                if (temp > 0) {//Avoid dividing by zero
-                    v_x[i] /= temp;
-                    v_y[i] /= temp;
-                }
-        
-                //NOISE
-                noise = nint*M_PI*((static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*2-1);
-                c = cos(noise);
-                s = sin(noise);
-                temp = v_x[i];
-                v_x[i] = v0[ctype]*(v_x[i]*c - v_y[i]*s);
-                v_y[i] = v0[ctype]*(temp*s + v_y[i]*c);
             }
-        }
         
-        for (i = 0; i < n; i++)
-        {
-            ctype = cellType(i, cutoff);
-            if (pinned[ctype] == 0) {
-                //WITHIN BOUNDARY
-                pos_x[i] += v_x[i];
-                pos_x[i] = fb_fitInto(pos_x[i], size_x);
-                pos_y[i] += v_y[i];
-                pos_y[i] = fb_fitInto(pos_y[i], size_y);
+            for (i = 0; i < n; i++)
+            {
+                ctype = cellType(i, cutoff);
+                if (pinned[ctype] == 0) {
+                    //WITHIN BOUNDARY
+                    pos_x[i] += v_x[i];
+                    pos_x[i] = fb_fitInto(pos_x[i], size_x);
+                    pos_y[i] += v_y[i];
+                    pos_y[i] = fb_fitInto(pos_y[i], size_y);
+                }
             }
-        }
-            
+        
         if(py_local_dict)                                  
         {                                                  
             py::dict local_dict = py::dict(py_local_dict); 
@@ -1210,126 +1210,126 @@ static PyObject* pb_tick(PyObject*self, PyObject* args, PyObject* kywds)
         v_y_used = 1;
         /*<function call here>*/     
         
-        int i;
-        int j;
-        int ctype;
-        double r;
-        double temp;
-        double noise;
-        double c;
-        double s;
-        double f_x;
-        double f_y;
-        double dis_x;
-        double dis_y;
-        double avgdir_x;
-        double avgdir_y;
-        int inf_count;
+            int i;
+            int j;
+            int ctype;
+            double r;
+            double temp;
+            double noise;
+            double c;
+            double s;
+            double f_x;
+            double f_y;
+            double dis_x;
+            double dis_y;
+            double avgdir_x;
+            double avgdir_y;
+            int inf_count;
         
-        for (i = 0; i < n; i++)
-        {
-            ctype = cellType(i, cutoff);
-            if (pinned[ctype] == 0) {
-                // Initiate interaction forces
-                f_x = 0;
-                f_y = 0;
-                inf_count = 0;
-                // Initiate alignment forces
-                avgdir_x = 0;
-                avgdir_y = 0;
+            for (i = 0; i < n; i++)
+            {
+                ctype = cellType(i, cutoff);
+                if (pinned[ctype] == 0) {
+                    // Initiate Attraction-Repulsion Strengths
+                    f_x = 0;
+                    f_y = 0;
+                    inf_count = 0;
+                    // Initiate Alignment Strengths
+                    avgdir_x = 0;
+                    avgdir_y = 0;
         
-                for (j = 0; j < n; j++)
-                {
-                    if (i != j) {
+                    for (j = 0; j < n; j++)
+                    {
                         dis_x = pb_dist(pos_x[i], pos_x[j], size_x);
                         dis_y = pb_dist(pos_y[i], pos_y[j], size_y);
                         r = sqrt(pow(dis_x,2)+pow(dis_y,2));
-                        //INTERACTION FORCE
-                        if (r <= r1) {
-                            if (r < r0) {
-                                //Infinite repulsion
-                                if (inf_count == 0) {
-                                    f_x = 0;
-                                    f_y = 0;
-                                } 
-                                inf_count++;
-                                if (r > 0) {//Avoid dividing by zero
-                                    f_x += -dis_x/r;
-                                    f_y += -dis_y/r;
+                        //Attraction-Repulsion Strength
+                        if (i != j) {
+                            if (r <= r1) {
+                                if (r < r0) {
+                                    //Infinite repulsion
+                                    if (inf_count == 0) {
+                                        f_x = 0;
+                                        f_y = 0;
+                                    }
+                                    inf_count++;
+                                    if (r > 0) {//Avoid dividing by zero
+                                        f_x += -dis_x/r;
+                                        f_y += -dis_y/r;
+                                    }
+                                } else {
+                                    //Equilibrium attraction and repulsion
+                                    if (inf_count == 0){
+                                        temp = -f0 + (r-r0)/(r1-r0)*(1.+beta[ctype*3+cellType(j, cutoff)])*f0;
+                                        f_x += temp*(dis_x)/r;
+                                        f_y += temp*(dis_y)/r;
+                                    }
                                 }
-                            } else {
-                                //Equilibrium attraction and repulsion
-                                if (inf_count == 0){
-                                    temp = -f0 + (r-r0)/(r1-r0)*(1.+beta[ctype*3+cellType(j, cutoff)])*f0;
-                                    f_x += temp*(dis_x)/r;
-                                    f_y += temp*(dis_y)/r;
-                                }
-                            } 
+                            }
                         }
-                        //ALIGNMENT FORCE
+                        //Alignment Strength
                         if (r <= rv) {
                             temp = sqrt(pow(v_x[j],2) + pow(v_y[j],2));
                             if (temp > 0) {
                                 avgdir_x += v_x[j]/temp;
                                 avgdir_y += v_y[j]/temp;
                             }
-                        }            
+                        }
                     }
+        
+                    // ANGULAR INERTIA
+                    v_x[i] *= inert;
+                    v_y[i] *= inert;
+        
+                    // INTERACTION
+                    if (inf_count > 0) {
+                        f_x = f_x/inf_count*10000;
+                        f_y = f_y/inf_count*10000;
+                    }
+                    v_x[i] += f_x;
+                    v_y[i] += f_y;
+        
+                    // ALIGNMENT
+                    temp = sqrt(pow(avgdir_x,2) + pow(avgdir_y,2));
+                    if (temp > 0) {//Avoid dividing by zero
+                        avgdir_x /= temp;
+                        avgdir_y /= temp;
+                    }
+                    v_x[i] += fa * avgdir_x;
+                    v_y[i] += fa * avgdir_y;
+        
+                    //GRADIENT
+                    v_x[i] += grad_x[ctype];
+                    v_y[i] += grad_y[ctype];
+        
+                    //NORMALIZE into unit vector (contain angle info)
+                    temp = sqrt(pow(v_x[i],2) + pow(v_y[i],2));
+                    if (temp > 0) {//Avoid dividing by zero
+                        v_x[i] /= temp;
+                        v_y[i] /= temp;
+                    }
+        
+                    //NOISE
+                    noise = nint*M_PI*((static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*2-1);
+                    c = cos(noise);
+                    s = sin(noise);
+                    temp = v_x[i];
+                    v_x[i] = v0[ctype]*(v_x[i]*c - v_y[i]*s);
+                    v_y[i] = v0[ctype]*(temp*s + v_y[i]*c);
                 }
-                
-                // ANGULAR INERTIA
-                v_x[i] *= inert;
-                v_y[i] *= inert;
-        
-                // INTERACTION
-                if (inf_count > 0) {
-                    f_x = f_x/inf_count*10000;
-                    f_y = f_y/inf_count*10000;
-                }
-                v_x[i] += f_x;
-                v_y[i] += f_y;
-        
-                // ALIGNMENT
-                temp = sqrt(pow(avgdir_x,2) + pow(avgdir_y,2));
-                if (temp > 0) {//Avoid dividing by zero
-                    avgdir_x /= temp;
-                    avgdir_y /= temp;
-                }
-                v_x[i] += fa * avgdir_x;
-                v_y[i] += fa * avgdir_y;
-        
-                //GRADIENT
-                v_x[i] += grad_x[ctype];
-                v_y[i] += grad_y[ctype];
-        
-                //NORMALIZE into unit vector (contain angle info)
-                temp = sqrt(pow(v_x[i],2) + pow(v_y[i],2));
-                if (temp > 0) {//Avoid dividing by zero
-                    v_x[i] /= temp;
-                    v_y[i] /= temp;
-                }
-        
-                //NOISE
-                noise = nint*M_PI*((static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*2-1);
-                c = cos(noise);
-                s = sin(noise);
-                temp = v_x[i];
-                v_x[i] = v0[ctype]*(v_x[i]*c - v_y[i]*s);
-                v_y[i] = v0[ctype]*(temp*s + v_y[i]*c);
             }
-        }
         
-        for (i = 0; i < n; i++)
-        {
-            ctype = cellType(i, cutoff);
-            if (pinned[ctype] == 0) {
-                //WITHIN BOUNDARY
-                pos_x[i] += v_x[i];
-                pos_x[i] = pb_fitInto(pos_x[i], size_x);
-                pos_y[i] += v_y[i];
-                pos_y[i] = pb_fitInto(pos_y[i], size_y);
+            for (i = 0; i < n; i++)
+            {
+                ctype = cellType(i, cutoff);
+                if (pinned[ctype] == 0) {
+                    //WITHIN BOUNDARY
+                    pos_x[i] += v_x[i];
+                    pos_x[i] = pb_fitInto(pos_x[i], size_x);
+                    pos_y[i] += v_y[i];
+                    pos_y[i] = pb_fitInto(pos_y[i], size_y);
+                }
             }
-        }
         
         
         

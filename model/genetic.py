@@ -43,14 +43,14 @@ class Genotype(object):
         return deepcopy(self.parameters)
 
 class Phenotype(object):
-    def __init__(self, genotype, scaling_factor, periodic_boundary, prev=False):
+    def __init__(self, genotype, scale_factor, periodic_boundary, prev=False):
         self.genotype = genotype
         self.step = 0
         self.periodic_boundary = periodic_boundary
-        self.scaling_factor = scaling_factor
-        self.model = Model(genotype.copy_param(), scaling_factor, periodic_boundary)
+        self.scale_factor = scale_factor
+        self.model = Model(genotype.copy_param(), scale_factor, periodic_boundary)
         if not prev:
-            self.model.random_initialization()
+            self.model.init_particles_state()
 
     @property
     def properties(self):
@@ -298,7 +298,7 @@ class Population(object):
     def update_phenotype(self):
         """
         {"periodic_boundary": bool,
-        "scaling_factor": float,
+        "scale_factor": float,
         "velocity_trace": list of float}
         """
         pb_changed = self.pb != self.session.pb

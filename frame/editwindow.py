@@ -495,7 +495,9 @@ class EditWindow(Frame):
         self.edit_frame = EditFrame(self, session, sim)
 
         #graph
-        self.graph_widget = PlotWidget(self, figsize=graph_figsize, dpi=dpi, no_edge=True, axis="off", xlim=[0, AXIS_LIMIT], ylim=[0, AXIS_LIMIT])
+        scale_factor = session.sf
+        adjusted_limit = AXIS_LIMIT / scale_factor
+        self.graph_widget = PlotWidget(self, figsize=graph_figsize, dpi=dpi, no_edge=True, axis="off", xlim=[0, adjusted_limit], ylim=[0, adjusted_limit])
         self.dots = (graph_figsize[0]*dpi)**2
         self.update_graph()
 

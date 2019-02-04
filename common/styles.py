@@ -13,7 +13,7 @@ CELL_ALPHA = [0.8,0.7,0.6]
 SIMS_FRAME_COLOR = "white"
 
 #GraphFrame
-AXIS_LIMIT = 10
+AXIS_LIMIT = 10.
 ON_HOVER_COLOR = "#DCDCDC" #light grey
 ON_CLICK_COLOR = "#808080" #dark grey
 ON_SELECT_COLOR = "#1589C9"
