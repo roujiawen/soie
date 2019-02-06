@@ -12,7 +12,7 @@ FIELD_SIZE = 10.0
 N_GLOBAL_STATS = 2
 
 class Model(object):
-    def __init__(self, params, scale_factor=0.66, periodic_boundary=False):
+    def __init__(self, params, scale_factor=2., periodic_boundary=False):
         self.order_parameters = []
         self.group_angular_momentum = []
         self.user_params = params
@@ -25,6 +25,9 @@ class Model(object):
 
         self.internal_params = self.gen_internal_params(scale_factor)
 
+        self.pinned_num = np.sum(self.internal_params["pinned"])
+        self.periodic_boundary = periodic_boundary
+
     def gen_internal_params(self, scale_factor):
         """
         Formatting user-provided parameters into internal parameters accepted
@@ -35,7 +38,7 @@ class Model(object):
 
         # FORMATTING INTERNAL PARAMS
         # Particle core radius
-        r0 = CORE_RADIUS
+        r0_x_2 = CORE_RADIUS * 2
         # Calculate number of particles
         max_num_particles = 10**4/(2*sqrt(3)) / (scale_factor)**2
         nop = int(uprm['Cell Density'] * max_num_particles)
@@ -68,7 +71,7 @@ class Model(object):
 
         names = [
             'nop', 'xlim', 'ylim',
-            'r0', 'r1', 'ra', # radii
+            'r0_x_2', 'r1', 'ra', # radii
             'inert', 'f0', 'fa','nint', # strengths
             'v0', 'pinned', 'cutoff', 'beta', 'grad_x', 'grad_y' # arrays
             ]
@@ -84,38 +87,40 @@ class Model(object):
         cutoff = iprm['cutoff']
 
         # Randomize position
-        x_position = np.random.random(nop) * xlim
-        y_position = np.random.random(nop) * ylim
+        pos_x = np.random.random(nop) * xlim
+        pos_y = np.random.random(nop) * ylim
 
         # Randomize velocity
         theta = np.random.random(nop) * 2 * pi
-        x_velocity = np.cos(theta)
-        y_velocity = np.sin(theta)
+        dir_x = np.cos(theta)
+        dir_y = np.sin(theta)
 
         # For different types
         bd = [0] + list(iprm['cutoff'])
         types = [slice(bd[i-1], bd[i]) for i in range(1, len(bd))]
-        for type_, v in zip(types, iprm["v0"]):
-            x_velocity[type_] *= v
-            y_velocity[type_] *= v
+        # for type_, v in zip(types, iprm["v0"]):
+        #     x_velocity[type_] *= v
+        #     y_velocity[type_] *= v
 
         # Randomize pinned shape
         for type_, pinned_shape in zip(types, uprm["Pinned Cells"]):
             if pinned_shape != "none":
                 n = type_.stop - type_.start # length of the slice
+                dir_x[type_] = 0.
+                dir_y[type_] = 0.
                 if pinned_shape == "ring":
                     # Radius = 30%-40% of field size
                     radius = xlim * (0.3+np.random.random(n)*0.1)
                     theta = 2 * np.random.random(n) * pi
-                    x_position[type_] = xlim/2. + np.cos(theta)*radius
-                    y_position[type_] = ylim/2. + np.sin(theta)*radius
+                    pos_x[type_] = xlim/2. + np.cos(theta)*radius
+                    pos_y[type_] = ylim/2. + np.sin(theta)*radius
 
                 elif pinned_shape == "circle":
                     # 0-20% of field size
                     radius = xlim * 0.2 * np.random.power(2, n)
                     theta = 2 * np.random.random(n) * pi
-                    x_position[type_] = xlim/2. + np.cos(theta)*radius
-                    y_position[type_] = ylim/2. + np.sin(theta)*radius
+                    pos_x[type_] = xlim/2. + np.cos(theta)*radius
+                    pos_y[type_] = ylim/2. + np.sin(theta)*radius
 
                 elif pinned_shape == "square":
                     # radius ~ 40-50% of field size
@@ -131,10 +136,10 @@ class Model(object):
                     temp_x[is_2], temp_y[is_2] = coord[is_2]+0.1*xlim, depth[is_2]
                     is_3 = side == 3
                     temp_x[is_3], temp_y[is_3] = coord[is_3], ylim - depth[is_3]
-                    x_position[type_] = temp_x
-                    y_position[type_] = temp_y
+                    pos_x[type_] = temp_x
+                    pos_y[type_] = temp_y
 
-        self.x, self.y, self.dir_x, self.dir_y = x_position, y_position, x_velocity, y_velocity
+        self.x, self.y, self.dir_x, self.dir_y = pos_x, pos_y, dir_x, dir_y
 
     def fb_tick(self):
         c_model.fb_tick(*self.internal_params.values()+[self.x, self.y, self.dir_x, self.dir_y])
@@ -154,30 +159,36 @@ class Model(object):
         """
         global_stats_slice = np.empty((N_GLOBAL_STATS))
 
-        x_position, y_position, x_velocity, y_velocity = self.x, self.y, self.dir_x, self.dir_y
+        pos_x, pos_y, dir_x, dir_y = self.x, self.y, self.dir_x, self.dir_y
         iprm = self.internal_params
         nop, cutoff, v0 = iprm["nop"], iprm["cutoff"], iprm["v0"]
+        xlim, ylim = iprm["xlim"], iprm["ylim"]
 
         # Group angular momentum
-        rGr_x = np.sum(x_position)/float(nop)
-        rGr_y = np.sum(y_position)/float(nop)
-        r_x = x_position - rGr_x
-        r_y = y_position - rGr_y
-        v_x = np.empty(nop)
-        v_y = np.empty(nop)
-        start_index = 0
-        for i, end_index in enumerate(cutoff):
-            v_x[start_index:end_index] = x_velocity[start_index:end_index]/v0[i]
-            v_y[start_index:end_index] = y_velocity[start_index:end_index]/v0[i]
-            start_index = end_index
-        product = np.cross([r_x, r_y], [v_x, v_y], axisa=0, axisb=0)
+
+        # center of mass
+        if self.periodic_boundary:
+            theta_x = 2 * pi * pos_x / xlim
+            theta_y = 2 * pi * pos_y / ylim
+            theta_x_cos = np.mean(np.cos(theta_x))
+            theta_x_sin = np.mean(np.sin(theta_x))
+            theta_y_cos = np.mean(np.cos(theta_y))
+            theta_y_sin = np.mean(np.sin(theta_y))
+            rGr_x = (np.arctan2(-theta_x_sin, -theta_x_cos) + pi) * xlim / (2 * pi)
+            rGr_y = (np.arctan2(-theta_y_sin, -theta_y_cos) + pi) * ylim / (2 * pi)
+        else:
+            rGr_x = np.sum(pos_x)/float(nop)
+            rGr_y = np.sum(pos_y)/float(nop)
+        r_x = pos_x - rGr_x
+        r_y = pos_y - rGr_y
+        product = np.cross([r_x, r_y], [dir_x, dir_y], axisa=0, axisb=0)
         global_stats_slice[0] = np.sum(product)/float(nop)
 
         # Orderness
-        x_sum = np.sum(v_x)
-        y_sum = np.sum(v_y)
+        x_sum = np.sum(dir_x)
+        y_sum = np.sum(dir_y)
         d = (x_sum*x_sum + y_sum*y_sum)**0.5
-        global_stats_slice[1] = d/float(nop)
+        global_stats_slice[1] = d/(float(nop) - self.pinned_num)
 
         self.group_angular_momentum.append(global_stats_slice[0])
         self.order_parameters.append(global_stats_slice[1])
@@ -214,23 +225,24 @@ def main():
     import matplotlib.pyplot as plt
     start_time = time.time()
 
-    params = {'Gradient Intensity': [0.0, 0.0, 1.52],
+    params = {'Gradient Intensity': [0., 0.0, 1.52],
     'Cell Density': 0.5,
     'Angular Inertia': 1.,
-    'Alignment Force': 2.5284,
+    'Alignment Force': 0.,
     'Pinned Cells': ['none', 'none', 'none'],
     'Velocity': [0.085, 0.034, 0.086],
     'Gradient Direction': [0.79, 0.47, 1.83],
     'Alignment Range': 11.1,
     'Adhesion': [[3.25, 1.1300000000000001, 1.15], [1.1300000000000001, 1.36, 4.0], [1.15, 4.0, 1.48]],
-    'Interaction Force': 4.7298,
-    'Cell Ratio': [0.33, 0.33, 0.34],
+    'Interaction Force': 5.,
+    'Cell Ratio': [1.0, 0, 0],
     'Noise Intensity': 0.28,
-    'Interaction Range': 10.2}
+    'Interaction Range': 50.2}
 
-    m = Model(params)
+    sf = 1.0
+    m = Model(params, scale_factor=sf, periodic_boundary=True)
     m.init_particles_state()
-    for i in range(25):
+    for i in range(50):
         if i % 100 == 0:
             print "step", i
         m.tick()
@@ -248,6 +260,8 @@ def main():
             plt.plot([x, x-vlcty[i][0][j]*multiplier],[y, y-vlcty[i][1][j]*multiplier], color ="grey")"""
         plt.scatter(pair[0], pair[1], s=5, color=colors[i])
 
+    plt.xlim(0, 10./sf)
+    plt.ylim(0, 10./sf)
     plt.show()
 
 

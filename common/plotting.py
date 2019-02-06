@@ -44,10 +44,11 @@ class PlotWidget(object):
     def plot_sim(self, session, sim, dots):
         scale_factor, velocity_trace = session.sf, session.vt
         new_graph_data = session.models["state"][sim]
+        species_velocity = session.models["params"][sim]["Velocity"]
         coords, vlcty = new_graph_data
         colors = CELL_COLORS
         self.clear()
-        s = dots/100. * 3.14 * (0.15 * scale_factor)**2
+        s = dots/100. * 3.14 * (0.08 * scale_factor)**2
         multiplier = velocity_trace[0]
         alpha = velocity_trace[1]
         for i, pair in enumerate(coords):
@@ -56,7 +57,8 @@ class PlotWidget(object):
                 for j in range(len(pair[0])):
                     x = pair[0][j]
                     y = pair[1][j]
-                    segs.append(((x, y), (x-vlcty[i][0][j]*multiplier, y-vlcty[i][1][j]*multiplier)))
+                    segs.append(((x, y), (x-vlcty[i][0][j]*multiplier*species_velocity[i],
+                                          y-vlcty[i][1][j]*multiplier*species_velocity[i])))
                 ln_coll = LineCollection(segs, colors=colors[i], linewidths=1, alpha = alpha)
                 self.add_collection(ln_coll)
             self.scatter(pair[0], pair[1], s=s, color=colors[i],linewidths=0, alpha=CELL_ALPHA[i])
