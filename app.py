@@ -387,7 +387,11 @@ class App(Frame):
                         param_info[name]["range"][i].append(chosen_gene[name][i])
             elif name =="Cell Ratio":
                 blue, red, green = chosen_gene[name]
-                param_info[name]["range"][:2] = recursive_fit(blue/float(red), param_info[name]["range"][:2])
+                if red == 0:
+                    blue_red_ratio = float("inf")
+                else:
+                    blue_red_ratio = blue/float(red)
+                param_info[name]["range"][:2] = recursive_fit(blue_red_ratio, param_info[name]["range"][:2])
                 param_info[name]["range"][2:] = recursive_fit(green, param_info[name]["range"][2:])
             else:
                 param_info[name]["range"] = recursive_fit(chosen_gene[name], param_info[name]["range"])
