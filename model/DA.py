@@ -13,8 +13,7 @@ N_GLOBAL_STATS = 2
 
 class Model(object):
     def __init__(self, params, scale_factor=2., periodic_boundary=False):
-        self.order_parameters = []
-        self.group_angular_momentum = []
+        self.global_stats = np.zeros([N_GLOBAL_STATS, 0])
         self.user_params = params
 
         # Periodic boundary settings
@@ -39,19 +38,19 @@ class Model(object):
         # FORMATTING INTERNAL PARAMS
         # Particle core radius
         r0_x_2 = CORE_RADIUS * 2
-        # Calculate number of particles
-        max_num_particles = 10**4/(2*sqrt(3)) / (scale_factor)**2
-        nop = int(uprm['Cell Density'] * max_num_particles)
         # Calculate actual field size (scaled)
         xlim = ylim = FIELD_SIZE / float(scale_factor)
+        # Calculate number of particles
+        max_num_particles = (sqrt(3)/6.) * (xlim*ylim) / (CORE_RADIUS**2)
+        nop = int(uprm['Cell Density'] * max_num_particles)
         # Calculate force and alignment radii
         r1 = uprm['Interaction Range'] * CORE_RADIUS
         ra = uprm['Alignment Range'] * CORE_RADIUS
         # Just copying
-        inert = uprm['Angular Inertia']
+        iner_coef = uprm['Angular Inertia']
         f0 = uprm['Interaction Force']
         fa = uprm['Alignment Force']
-        nint = uprm['Noise Intensity']
+        noise_coef = uprm['Noise Intensity']
         # Change type
         v0 = np.array(uprm["Velocity"])
         beta = np.array(uprm["Adhesion"])
@@ -59,20 +58,25 @@ class Model(object):
         pinned = np.array([0 if x == "none" else 1 for x in uprm["Pinned Cells"]]
                           ).astype(np.int32)
         # Convert ratio to cutoff
-        counts = [int(round(nop*each)) for each in uprm["Cell Ratio"][:2]]
-        counts.append(nop - sum(counts)) # Last type
-        cutoff = np.array([sum(counts[:i+1]) for i in range(len(counts))]
-                          ).astype(np.int32) # Cumulative
+        ratios = uprm["Cell Ratio"][:2]
+        cumu_ratio = [sum(ratios[:i+1]) for i in range(len(ratios))] + [1.0]
+        cutoff = np.array([int(nop*each) for each in cumu_ratio]).astype(np.int32)
+
         # Gradient from polar to cartesian
         grad_x = np.array([np.cos(d*pi) * i for d, i
                 in zip(uprm["Gradient Direction"], uprm["Gradient Intensity"])])
         grad_y = np.array([np.sin(d*pi) * i for d, i
                 in zip(uprm["Gradient Direction"], uprm["Gradient Intensity"])])
 
+        # Effective number of particles (excluding pinned)
+        bd = [0] + list(cutoff)
+        counts = [bd[i+1] - bd[i] for i in range(len(bd)-1)]
+        eff_nop = float(np.sum([counts[i] for i in range(len(counts)) if pinned[i] == 0]))
+
         names = [
-            'nop', 'xlim', 'ylim',
+            'nop', 'eff_nop', 'xlim', 'ylim',
             'r0_x_2', 'r1', 'ra', # radii
-            'inert', 'f0', 'fa','nint', # strengths
+            'iner_coef', 'f0', 'fa','noise_coef', # strengths
             'v0', 'pinned', 'cutoff', 'beta', 'grad_x', 'grad_y' # arrays
             ]
         internal_params = OrderedDict([(x, locals()[x]) for x in names])
@@ -98,9 +102,6 @@ class Model(object):
         # For different types
         bd = [0] + list(iprm['cutoff'])
         types = [slice(bd[i-1], bd[i]) for i in range(1, len(bd))]
-        # for type_, v in zip(types, iprm["v0"]):
-        #     x_velocity[type_] *= v
-        #     y_velocity[type_] *= v
 
         # Randomize pinned shape
         for type_, pinned_shape in zip(types, uprm["Pinned Cells"]):
@@ -141,57 +142,13 @@ class Model(object):
 
         self.x, self.y, self.dir_x, self.dir_y = pos_x, pos_y, dir_x, dir_y
 
-    def fb_tick(self):
-        c_model.fb_tick(*self.internal_params.values()+[self.x, self.y, self.dir_x, self.dir_y])
-        self.calc_global_stats()
+    def fb_tick(self, steps):
+        global_stats_slice = np.zeros(N_GLOBAL_STATS * steps)
+        c_model.fb_tick(*self.internal_params.values()+[self.x, self.y, self.dir_x, self.dir_y, global_stats_slice, steps])
+        self.global_stats = np.hstack([self.global_stats, global_stats_slice.reshape(N_GLOBAL_STATS, steps)])
 
-    def pb_tick(self):
+    def pb_tick(self, steps):
         c_model.pb_tick(*self.internal_params.values()+[self.x, self.y, self.dir_x, self.dir_y])
-        self.calc_global_stats()
-
-    def calc_global_stats(self):
-        """
-        INPUT:  cparams: list of int/float/nparrays
-                state : list of four arrays
-        OUTPUT: global_stats_slice : np.array((N_GLOBAL_STATS))
-                    #0: Group angular momentum
-                    #1: Orderness
-        """
-        global_stats_slice = np.empty((N_GLOBAL_STATS))
-
-        pos_x, pos_y, dir_x, dir_y = self.x, self.y, self.dir_x, self.dir_y
-        iprm = self.internal_params
-        nop, cutoff, v0 = iprm["nop"], iprm["cutoff"], iprm["v0"]
-        xlim, ylim = iprm["xlim"], iprm["ylim"]
-
-        # Group angular momentum
-
-        # center of mass
-        if self.periodic_boundary:
-            theta_x = 2 * pi * pos_x / xlim
-            theta_y = 2 * pi * pos_y / ylim
-            theta_x_cos = np.mean(np.cos(theta_x))
-            theta_x_sin = np.mean(np.sin(theta_x))
-            theta_y_cos = np.mean(np.cos(theta_y))
-            theta_y_sin = np.mean(np.sin(theta_y))
-            rGr_x = (np.arctan2(-theta_x_sin, -theta_x_cos) + pi) * xlim / (2 * pi)
-            rGr_y = (np.arctan2(-theta_y_sin, -theta_y_cos) + pi) * ylim / (2 * pi)
-        else:
-            rGr_x = np.sum(pos_x)/float(nop)
-            rGr_y = np.sum(pos_y)/float(nop)
-        r_x = pos_x - rGr_x
-        r_y = pos_y - rGr_y
-        product = np.cross([r_x, r_y], [dir_x, dir_y], axisa=0, axisb=0)
-        global_stats_slice[0] = np.sum(product)/float(nop)
-
-        # Orderness
-        x_sum = np.sum(dir_x)
-        y_sum = np.sum(dir_y)
-        d = (x_sum*x_sum + y_sum*y_sum)**0.5
-        global_stats_slice[1] = d/(float(nop) - self.pinned_num)
-
-        self.group_angular_momentum.append(global_stats_slice[0])
-        self.order_parameters.append(global_stats_slice[1])
 
     def set(self, state, properties):
         """
@@ -199,7 +156,7 @@ class Model(object):
         """
         ntypes = len(self.internal_params["cutoff"])
         coords, vlcty = state
-        self.order_parameters, self.group_angular_momentum = properties
+        self.global_stats = properties
 
         self.x = np.concatenate([coords[i][0] for i in range(ntypes)])
         self.y = np.concatenate([coords[i][1] for i in range(ntypes)])
@@ -229,23 +186,22 @@ def main():
     'Cell Density': 0.5,
     'Angular Inertia': 1.,
     'Alignment Force': 0.,
-    'Pinned Cells': ['none', 'none', 'none'],
+    'Pinned Cells': ['none', 'circle', 'none'],
     'Velocity': [0.085, 0.034, 0.086],
     'Gradient Direction': [0.79, 0.47, 1.83],
     'Alignment Range': 11.1,
     'Adhesion': [[3.25, 1.1300000000000001, 1.15], [1.1300000000000001, 1.36, 4.0], [1.15, 4.0, 1.48]],
     'Interaction Force': 5.,
-    'Cell Ratio': [1.0, 0, 0],
+    'Cell Ratio': [0.5, 0.5, 0],
     'Noise Intensity': 0.28,
     'Interaction Range': 50.2}
 
     sf = 1.0
-    m = Model(params, scale_factor=sf, periodic_boundary=True)
+    m = Model(params, scale_factor=sf, periodic_boundary=False)
     m.init_particles_state()
-    for i in range(50):
-        if i % 100 == 0:
-            print "step", i
-        m.tick()
+
+    m.tick(25)
+    print m.global_stats
 
     print("--- %s seconds ---" % (time.time() - start_time))
 

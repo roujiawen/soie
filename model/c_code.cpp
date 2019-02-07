@@ -627,46 +627,28 @@ PyObject* catchall_to_py(PyObject* obj)
         }
     }
     
-    double pb_dist(double x1, double x2, double size_x) {
-        double x = x2-x1;
-        if (x > size_x/2.){
-        x -= size_x;
-        } else if (x < -size_x/2.){
-        x += size_x;
-        }
-
-        return x;
-    }
-    
-    double pb_fitInto(double v, double upper) {
-        if (v >= upper) {
-            return v-upper;
-        } else if (v < 0.) {
-            return v+upper;
-        } else {
-            return v;
-        }
-    }
-    
 
 static PyObject* fb_tick(PyObject*self, PyObject* args, PyObject* kywds)
 {
     py::object return_val;
     int exception_occurred = 0;
     PyObject *py_local_dict = NULL;
-    static const char *kwlist[] = {"n","size_x","size_y","r0_x_2","r1","rv","iner_coef","f0","fa","noise_coef","v0","pinned","cutoff","beta","grad_x","grad_y","pos_x","pos_y","dir_x","dir_y","local_dict", NULL};
-    PyObject *py_n, *py_size_x, *py_size_y, *py_r0_x_2, *py_r1, *py_rv, *py_iner_coef, *py_f0, *py_fa, *py_noise_coef, *py_v0, *py_pinned, *py_cutoff, *py_beta, *py_grad_x, *py_grad_y, *py_pos_x, *py_pos_y, *py_dir_x, *py_dir_y;
-    int n_used, size_x_used, size_y_used, r0_x_2_used, r1_used, rv_used, iner_coef_used, f0_used, fa_used, noise_coef_used, v0_used, pinned_used, cutoff_used, beta_used, grad_x_used, grad_y_used, pos_x_used, pos_y_used, dir_x_used, dir_y_used;
-    py_n = py_size_x = py_size_y = py_r0_x_2 = py_r1 = py_rv = py_iner_coef = py_f0 = py_fa = py_noise_coef = py_v0 = py_pinned = py_cutoff = py_beta = py_grad_x = py_grad_y = py_pos_x = py_pos_y = py_dir_x = py_dir_y = NULL;
-    n_used= size_x_used= size_y_used= r0_x_2_used= r1_used= rv_used= iner_coef_used= f0_used= fa_used= noise_coef_used= v0_used= pinned_used= cutoff_used= beta_used= grad_x_used= grad_y_used= pos_x_used= pos_y_used= dir_x_used= dir_y_used = 0;
+    static const char *kwlist[] = {"n","eff_nop","size_x","size_y","r0_x_2","r1","rv","iner_coef","f0","fa","noise_coef","v0","pinned","cutoff","beta","grad_x","grad_y","pos_x","pos_y","dir_x","dir_y","global_stats","steps","local_dict", NULL};
+    PyObject *py_n, *py_eff_nop, *py_size_x, *py_size_y, *py_r0_x_2, *py_r1, *py_rv, *py_iner_coef, *py_f0, *py_fa, *py_noise_coef, *py_v0, *py_pinned, *py_cutoff, *py_beta, *py_grad_x, *py_grad_y, *py_pos_x, *py_pos_y, *py_dir_x, *py_dir_y, *py_global_stats, *py_steps;
+    int n_used, eff_nop_used, size_x_used, size_y_used, r0_x_2_used, r1_used, rv_used, iner_coef_used, f0_used, fa_used, noise_coef_used, v0_used, pinned_used, cutoff_used, beta_used, grad_x_used, grad_y_used, pos_x_used, pos_y_used, dir_x_used, dir_y_used, global_stats_used, steps_used;
+    py_n = py_eff_nop = py_size_x = py_size_y = py_r0_x_2 = py_r1 = py_rv = py_iner_coef = py_f0 = py_fa = py_noise_coef = py_v0 = py_pinned = py_cutoff = py_beta = py_grad_x = py_grad_y = py_pos_x = py_pos_y = py_dir_x = py_dir_y = py_global_stats = py_steps = NULL;
+    n_used= eff_nop_used= size_x_used= size_y_used= r0_x_2_used= r1_used= rv_used= iner_coef_used= f0_used= fa_used= noise_coef_used= v0_used= pinned_used= cutoff_used= beta_used= grad_x_used= grad_y_used= pos_x_used= pos_y_used= dir_x_used= dir_y_used= global_stats_used= steps_used = 0;
     
-    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OOOOOOOOOOOOOOOOOOOO|O:fb_tick",const_cast<char**>(kwlist),&py_n, &py_size_x, &py_size_y, &py_r0_x_2, &py_r1, &py_rv, &py_iner_coef, &py_f0, &py_fa, &py_noise_coef, &py_v0, &py_pinned, &py_cutoff, &py_beta, &py_grad_x, &py_grad_y, &py_pos_x, &py_pos_y, &py_dir_x, &py_dir_y, &py_local_dict))
+    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OOOOOOOOOOOOOOOOOOOOOOO|O:fb_tick",const_cast<char**>(kwlist),&py_n, &py_eff_nop, &py_size_x, &py_size_y, &py_r0_x_2, &py_r1, &py_rv, &py_iner_coef, &py_f0, &py_fa, &py_noise_coef, &py_v0, &py_pinned, &py_cutoff, &py_beta, &py_grad_x, &py_grad_y, &py_pos_x, &py_pos_y, &py_dir_x, &py_dir_y, &py_global_stats, &py_steps, &py_local_dict))
        return NULL;
     try                              
     {                                
         py_n = py_n;
         int n = convert_to_int(py_n,"n");
         n_used = 1;
+        py_eff_nop = py_eff_nop;
+        double eff_nop = convert_to_float(py_eff_nop,"eff_nop");
+        eff_nop_used = 1;
         py_size_x = py_size_x;
         double size_x = convert_to_float(py_size_x,"size_x");
         size_x_used = 1;
@@ -814,118 +796,169 @@ static PyObject* fb_tick(PyObject*self, PyObject* args, PyObject* kywds)
         int Ddir_y = dir_y_array->nd;
         double* dir_y = (double*) dir_y_array->data;
         dir_y_used = 1;
+        py_global_stats = py_global_stats;
+        PyArrayObject* global_stats_array = convert_to_numpy(py_global_stats,"global_stats");
+        conversion_numpy_check_type(global_stats_array,PyArray_DOUBLE,"global_stats");
+        #define GLOBAL_STATS1(i) (*((double*)(global_stats_array->data + (i)*Sglobal_stats[0])))
+        #define GLOBAL_STATS2(i,j) (*((double*)(global_stats_array->data + (i)*Sglobal_stats[0] + (j)*Sglobal_stats[1])))
+        #define GLOBAL_STATS3(i,j,k) (*((double*)(global_stats_array->data + (i)*Sglobal_stats[0] + (j)*Sglobal_stats[1] + (k)*Sglobal_stats[2])))
+        #define GLOBAL_STATS4(i,j,k,l) (*((double*)(global_stats_array->data + (i)*Sglobal_stats[0] + (j)*Sglobal_stats[1] + (k)*Sglobal_stats[2] + (l)*Sglobal_stats[3])))
+        npy_intp* Nglobal_stats = global_stats_array->dimensions;
+        npy_intp* Sglobal_stats = global_stats_array->strides;
+        int Dglobal_stats = global_stats_array->nd;
+        double* global_stats = (double*) global_stats_array->data;
+        global_stats_used = 1;
+        py_steps = py_steps;
+        int steps = convert_to_int(py_steps,"steps");
+        steps_used = 1;
         /*<function call here>*/     
         
-            int i, j, k, k2, start_index, end_index, start_index2, end_index2;
-            float grad_i_x, grad_i_y, align_i_x, align_i_y, f_i_x, f_i_y;
-            float beta_ij, ar_slope, ar_interc, r, temp, noise, c, s, v0_i;
+            int i, j, k, k2, start_index, end_index, start_index2, end_index2, ith_step;
+            double grad_i_x, grad_i_y, align_i_x, align_i_y, f_i_x, f_i_y;
+            double beta_ij, ar_slope, ar_interc, r, temp, noise, c, s, v0_i;
+            double stat_align_x, stat_align_y, cm_x, cm_y, rel_pos_x, rel_pos_y, stat_angular;
         
-            // UPDATE DIRECTION
-            start_index = 0;
-            for (k = 0; k < 3; k++) {
-              end_index = cutoff[k];
+            for (ith_step = 0; ith_step < steps; ith_step++) {
+                stat_align_x = 0;
+                stat_align_y = 0;
+                cm_x = 0;
+                cm_y = 0;
         
-              if (pinned[k] == 0) {
-                // Only if i is not pinned
+                // UPDATE DIRECTION
+                start_index = 0;
+                for (k = 0; k < 3; k++) {
+                  end_index = cutoff[k];
         
-                // GRADIENT (constant across same species)
-                grad_i_x = grad_x[k];
-                grad_i_y = grad_y[k];
+                  if (pinned[k] == 0) {
+                    // Only if i is not pinned
         
-                for (i = start_index; i < end_index; i++) {
-                  // INITIALIZATION
-                  // Alignment term
-                  align_i_x = 0;
-                  align_i_y = 0;
-                  // A-R term
-                  f_i_x = 0;
-                  f_i_y = 0;
+                    // GRADIENT (constant across same species)
+                    grad_i_x = grad_x[k];
+                    grad_i_y = grad_y[k];
         
-                  start_index2 = 0;
-                  for (k2 = 0; k2 < 3; k2++) {
-                    end_index2 = cutoff[k2];
+                    for (i = start_index; i < end_index; i++) {
+                      // INITIALIZATION
+                      // Alignment term
+                      align_i_x = 0;
+                      align_i_y = 0;
+                      // A-R term
+                      f_i_x = 0;
+                      f_i_y = 0;
         
-                    beta_ij = beta[k*3 + k2];
-                    ar_slope = (1 + beta_ij) * f0 / (r1 - r0_x_2);
-                    ar_interc = - r0_x_2 * (1 + beta_ij) * f0 / (r1 - r0_x_2) - f0;
+                      start_index2 = 0;
+                      for (k2 = 0; k2 < 3; k2++) {
+                        end_index2 = cutoff[k2];
         
-                    for (j = start_index2; j < end_index2; j++) {
-                      if (i != j) {
-                        r = fb_dist(pos_x[i], pos_y[i], pos_x[j], pos_y[j]);
-                        // ALIGNMENT
-                        if (pinned[k2] == 0) {
-                          // Only if j is not pinned
-                          if (r <= rv) {
-                            align_i_x += dir_x[j];
-                            align_i_y += dir_y[j];
+                        beta_ij = beta[k*3 + k2];
+                        ar_slope = (1 + beta_ij) * f0 / (r1 - r0_x_2);
+                        ar_interc = - r0_x_2 * (1 + beta_ij) * f0 / (r1 - r0_x_2) - f0;
+        
+                        for (j = start_index2; j < end_index2; j++) {
+                          if (i != j) {
+                            r = fb_dist(pos_x[i], pos_y[i], pos_x[j], pos_y[j]);
+                            // ALIGNMENT
+                            if (pinned[k2] == 0) {
+                              // Only if j is not pinned
+                              if (r <= rv) {
+                                align_i_x += dir_x[j];
+                                align_i_y += dir_y[j];
+                              }
+                            }
+                            // ATTRACTION-REPULSION
+                            if (r <= r1) {
+                              if (r < r0_x_2) {
+                                // Infinite repulsion
+                                f_i_x += -10000 * (pos_x[j] - pos_x[i]);
+                                f_i_y += -10000 * (pos_y[j] - pos_y[i]);
+                              } else {
+                                // Equilibrium attraction and repulsion
+                                if (r > 0) {
+                                  temp = r * ar_slope + ar_interc;
+                                  f_i_x += temp * (pos_x[j] - pos_x[i]) / r;
+                                  f_i_y += temp * (pos_y[j] - pos_y[i]) / r;
+                                }
+                              }
+                            }
                           }
                         }
-                        // ATTRACTION-REPULSION
-                        if (r <= r1) {
-                          if (r < r0_x_2) {
-                            // Infinite repulsion
-                            f_i_x += -10000 * (pos_x[j] - pos_x[i]);
-                            f_i_y += -10000 * (pos_y[j] - pos_y[i]);
-                          } else {
-                            // Equilibrium attraction and repulsion
-                            temp = r * ar_slope + ar_interc;
-                            f_i_x += temp * (pos_x[j] - pos_x[i]) / r;
-                            f_i_y += temp * (pos_y[j] - pos_y[i]) / r;
-                          }
-                        }
+                      start_index2 = end_index2;
                       }
+        
+                      // INERTIA
+                      dir_x[i] *= iner_coef;
+                      dir_y[i] *= iner_coef;
+        
+                      // ADD OTHER TERMS
+                      dir_x[i] += grad_i_x + align_i_x + f_i_x;
+                      dir_y[i] += grad_i_y + align_i_y + f_i_y;
+        
+                      // NORMALIZE (ARG)
+                      temp = sqrt(pow(dir_x[i], 2) + pow(dir_y[i], 2));
+                      if (temp > 0) {
+                        //Avoid dividing by zero
+                        dir_x[i] /= temp;
+                        dir_y[i] /= temp;
+                      }
+        
+                      // NOISE
+                      noise = noise_coef*M_PI*((static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*2-1);
+                      c = cos(noise);
+                      s = sin(noise);
+                      temp = dir_x[i];
+                      dir_x[i] = dir_x[i]*c - dir_y[i]*s;
+                      dir_y[i] = temp*s + dir_y[i]*c;
+        
+                      // STAT_ALIGN
+                      stat_align_x += dir_x[i];
+                      stat_align_y += dir_y[i];
                     }
-                  start_index2 = end_index2;
+                  }
+                  start_index = end_index;
+                }
+        
+                // UPDATE POSITION
+                start_index = 0;
+                for (k = 0; k < 3; k++) {
+                  end_index = cutoff[k];
+        
+                  if (pinned[k] == 0) {
+                    // Only if the cell type is not pinned
+        
+                    // SPEED (constant across same species)
+                    v0_i = v0[k];
+        
+                    for (i = start_index; i < end_index; i++) {
+                      pos_x[i] += v0_i * dir_x[i];
+                      pos_x[i] = fb_fitInto(pos_x[i], size_x);
+                      pos_y[i] += v0_i * dir_y[i];
+                      pos_y[i] = fb_fitInto(pos_y[i], size_y);
+                    }
+        
+                    //STAT_ANGULAR
+                    cm_x += pos_x[i];
+                    cm_y += pos_y[i];
                   }
         
-                  // INERTIA
-                  dir_x[i] *= iner_coef;
-                  dir_y[i] *= iner_coef;
+                  start_index = end_index;
+                }
         
-                  // ADD OTHER TERMS
-                  dir_x[i] += grad_i_x + align_i_x + f_i_x;
-                  dir_y[i] += grad_i_y + align_i_y + f_i_y;
-        
-                  // NORMALIZE (ARG)
-                  temp = sqrt(pow(dir_x[i], 2) + pow(dir_y[i], 2));
-                  if (temp > 0) {
-                    //Avoid dividing by zero
-                    dir_x[i] /= temp;
-                    dir_y[i] /= temp;
+                // Update global stats
+                if (eff_nop > 0) {
+                  // GROUP ANGULAR MOMENTUM (0*steps+ith_step)
+                  cm_x /= eff_nop;
+                  cm_y /= eff_nop;
+                  stat_angular = 0;
+                  for (i = 1; i < n; i++) {
+                    rel_pos_x = pos_x[i] - cm_x;
+                    rel_pos_y = pos_y[i] - cm_y;
+                    stat_angular += rel_pos_x * dir_y[i] - rel_pos_y * dir_x[i];
                   }
+                  global_stats[ith_step] = stat_angular / eff_nop;
         
-                  // NOISE
-                  noise = noise_coef*M_PI*((static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*2-1);
-                  c = cos(noise);
-                  s = sin(noise);
-                  temp = dir_x[i];
-                  dir_x[i] = dir_x[i]*c - dir_y[i]*s;
-                  dir_y[i] = temp*s + dir_y[i]*c;
+                  // ORDER PARAMETER (1*steps+ith_step)
+                  global_stats[steps + ith_step] = sqrt(pow(stat_align_x, 2) + pow(stat_align_y, 2)) / eff_nop;
+        
                 }
-              }
-              start_index = end_index;
-            }
-        
-            // UPDATE POSITION
-            start_index = 0;
-            for (k = 0; k < 3; k++) {
-              end_index = cutoff[k];
-        
-              if (pinned[k] == 0) {
-                // Only if the cell type is not pinned
-        
-                // SPEED (constant across same species)
-                v0_i = v0[k];
-        
-                for (i = start_index; i < end_index; i++) {
-                  pos_x[i] += v0_i * dir_x[i];
-                  pos_x[i] = fb_fitInto(pos_x[i], size_x);
-                  pos_y[i] += v0_i * dir_y[i];
-                  pos_y[i] = fb_fitInto(pos_y[i], size_y);
-                }
-              }
-        
-              start_index = end_index;
             }
         if(py_local_dict)                                  
         {                                                  
@@ -1019,385 +1052,13 @@ static PyObject* fb_tick(PyObject*self, PyObject* args, PyObject* kywds)
         #undef DIR_Y3
         #undef DIR_Y4
     }
-    if(!(PyObject*)return_val && !exception_occurred)
+    if(global_stats_used)
     {
-                                  
-        return_val = Py_None;            
-    }
-                                  
-    return return_val.disown();           
-}                                
-static PyObject* pb_tick(PyObject*self, PyObject* args, PyObject* kywds)
-{
-    py::object return_val;
-    int exception_occurred = 0;
-    PyObject *py_local_dict = NULL;
-    static const char *kwlist[] = {"n","size_x","size_y","r0_x_2","r1","rv","iner_coef","f0","fa","noise_coef","v0","pinned","cutoff","beta","grad_x","grad_y","pos_x","pos_y","dir_x","dir_y","local_dict", NULL};
-    PyObject *py_n, *py_size_x, *py_size_y, *py_r0_x_2, *py_r1, *py_rv, *py_iner_coef, *py_f0, *py_fa, *py_noise_coef, *py_v0, *py_pinned, *py_cutoff, *py_beta, *py_grad_x, *py_grad_y, *py_pos_x, *py_pos_y, *py_dir_x, *py_dir_y;
-    int n_used, size_x_used, size_y_used, r0_x_2_used, r1_used, rv_used, iner_coef_used, f0_used, fa_used, noise_coef_used, v0_used, pinned_used, cutoff_used, beta_used, grad_x_used, grad_y_used, pos_x_used, pos_y_used, dir_x_used, dir_y_used;
-    py_n = py_size_x = py_size_y = py_r0_x_2 = py_r1 = py_rv = py_iner_coef = py_f0 = py_fa = py_noise_coef = py_v0 = py_pinned = py_cutoff = py_beta = py_grad_x = py_grad_y = py_pos_x = py_pos_y = py_dir_x = py_dir_y = NULL;
-    n_used= size_x_used= size_y_used= r0_x_2_used= r1_used= rv_used= iner_coef_used= f0_used= fa_used= noise_coef_used= v0_used= pinned_used= cutoff_used= beta_used= grad_x_used= grad_y_used= pos_x_used= pos_y_used= dir_x_used= dir_y_used = 0;
-    
-    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OOOOOOOOOOOOOOOOOOOO|O:pb_tick",const_cast<char**>(kwlist),&py_n, &py_size_x, &py_size_y, &py_r0_x_2, &py_r1, &py_rv, &py_iner_coef, &py_f0, &py_fa, &py_noise_coef, &py_v0, &py_pinned, &py_cutoff, &py_beta, &py_grad_x, &py_grad_y, &py_pos_x, &py_pos_y, &py_dir_x, &py_dir_y, &py_local_dict))
-       return NULL;
-    try                              
-    {                                
-        py_n = py_n;
-        int n = convert_to_int(py_n,"n");
-        n_used = 1;
-        py_size_x = py_size_x;
-        double size_x = convert_to_float(py_size_x,"size_x");
-        size_x_used = 1;
-        py_size_y = py_size_y;
-        double size_y = convert_to_float(py_size_y,"size_y");
-        size_y_used = 1;
-        py_r0_x_2 = py_r0_x_2;
-        double r0_x_2 = convert_to_float(py_r0_x_2,"r0_x_2");
-        r0_x_2_used = 1;
-        py_r1 = py_r1;
-        double r1 = convert_to_float(py_r1,"r1");
-        r1_used = 1;
-        py_rv = py_rv;
-        double rv = convert_to_float(py_rv,"rv");
-        rv_used = 1;
-        py_iner_coef = py_iner_coef;
-        double iner_coef = convert_to_float(py_iner_coef,"iner_coef");
-        iner_coef_used = 1;
-        py_f0 = py_f0;
-        double f0 = convert_to_float(py_f0,"f0");
-        f0_used = 1;
-        py_fa = py_fa;
-        double fa = convert_to_float(py_fa,"fa");
-        fa_used = 1;
-        py_noise_coef = py_noise_coef;
-        double noise_coef = convert_to_float(py_noise_coef,"noise_coef");
-        noise_coef_used = 1;
-        py_v0 = py_v0;
-        PyArrayObject* v0_array = convert_to_numpy(py_v0,"v0");
-        conversion_numpy_check_type(v0_array,PyArray_DOUBLE,"v0");
-        #define V01(i) (*((double*)(v0_array->data + (i)*Sv0[0])))
-        #define V02(i,j) (*((double*)(v0_array->data + (i)*Sv0[0] + (j)*Sv0[1])))
-        #define V03(i,j,k) (*((double*)(v0_array->data + (i)*Sv0[0] + (j)*Sv0[1] + (k)*Sv0[2])))
-        #define V04(i,j,k,l) (*((double*)(v0_array->data + (i)*Sv0[0] + (j)*Sv0[1] + (k)*Sv0[2] + (l)*Sv0[3])))
-        npy_intp* Nv0 = v0_array->dimensions;
-        npy_intp* Sv0 = v0_array->strides;
-        int Dv0 = v0_array->nd;
-        double* v0 = (double*) v0_array->data;
-        v0_used = 1;
-        py_pinned = py_pinned;
-        PyArrayObject* pinned_array = convert_to_numpy(py_pinned,"pinned");
-        conversion_numpy_check_type(pinned_array,PyArray_INT,"pinned");
-        #define PINNED1(i) (*((int*)(pinned_array->data + (i)*Spinned[0])))
-        #define PINNED2(i,j) (*((int*)(pinned_array->data + (i)*Spinned[0] + (j)*Spinned[1])))
-        #define PINNED3(i,j,k) (*((int*)(pinned_array->data + (i)*Spinned[0] + (j)*Spinned[1] + (k)*Spinned[2])))
-        #define PINNED4(i,j,k,l) (*((int*)(pinned_array->data + (i)*Spinned[0] + (j)*Spinned[1] + (k)*Spinned[2] + (l)*Spinned[3])))
-        npy_intp* Npinned = pinned_array->dimensions;
-        npy_intp* Spinned = pinned_array->strides;
-        int Dpinned = pinned_array->nd;
-        int* pinned = (int*) pinned_array->data;
-        pinned_used = 1;
-        py_cutoff = py_cutoff;
-        PyArrayObject* cutoff_array = convert_to_numpy(py_cutoff,"cutoff");
-        conversion_numpy_check_type(cutoff_array,PyArray_INT,"cutoff");
-        #define CUTOFF1(i) (*((int*)(cutoff_array->data + (i)*Scutoff[0])))
-        #define CUTOFF2(i,j) (*((int*)(cutoff_array->data + (i)*Scutoff[0] + (j)*Scutoff[1])))
-        #define CUTOFF3(i,j,k) (*((int*)(cutoff_array->data + (i)*Scutoff[0] + (j)*Scutoff[1] + (k)*Scutoff[2])))
-        #define CUTOFF4(i,j,k,l) (*((int*)(cutoff_array->data + (i)*Scutoff[0] + (j)*Scutoff[1] + (k)*Scutoff[2] + (l)*Scutoff[3])))
-        npy_intp* Ncutoff = cutoff_array->dimensions;
-        npy_intp* Scutoff = cutoff_array->strides;
-        int Dcutoff = cutoff_array->nd;
-        int* cutoff = (int*) cutoff_array->data;
-        cutoff_used = 1;
-        py_beta = py_beta;
-        PyArrayObject* beta_array = convert_to_numpy(py_beta,"beta");
-        conversion_numpy_check_type(beta_array,PyArray_DOUBLE,"beta");
-        #define BETA1(i) (*((double*)(beta_array->data + (i)*Sbeta[0])))
-        #define BETA2(i,j) (*((double*)(beta_array->data + (i)*Sbeta[0] + (j)*Sbeta[1])))
-        #define BETA3(i,j,k) (*((double*)(beta_array->data + (i)*Sbeta[0] + (j)*Sbeta[1] + (k)*Sbeta[2])))
-        #define BETA4(i,j,k,l) (*((double*)(beta_array->data + (i)*Sbeta[0] + (j)*Sbeta[1] + (k)*Sbeta[2] + (l)*Sbeta[3])))
-        npy_intp* Nbeta = beta_array->dimensions;
-        npy_intp* Sbeta = beta_array->strides;
-        int Dbeta = beta_array->nd;
-        double* beta = (double*) beta_array->data;
-        beta_used = 1;
-        py_grad_x = py_grad_x;
-        PyArrayObject* grad_x_array = convert_to_numpy(py_grad_x,"grad_x");
-        conversion_numpy_check_type(grad_x_array,PyArray_DOUBLE,"grad_x");
-        #define GRAD_X1(i) (*((double*)(grad_x_array->data + (i)*Sgrad_x[0])))
-        #define GRAD_X2(i,j) (*((double*)(grad_x_array->data + (i)*Sgrad_x[0] + (j)*Sgrad_x[1])))
-        #define GRAD_X3(i,j,k) (*((double*)(grad_x_array->data + (i)*Sgrad_x[0] + (j)*Sgrad_x[1] + (k)*Sgrad_x[2])))
-        #define GRAD_X4(i,j,k,l) (*((double*)(grad_x_array->data + (i)*Sgrad_x[0] + (j)*Sgrad_x[1] + (k)*Sgrad_x[2] + (l)*Sgrad_x[3])))
-        npy_intp* Ngrad_x = grad_x_array->dimensions;
-        npy_intp* Sgrad_x = grad_x_array->strides;
-        int Dgrad_x = grad_x_array->nd;
-        double* grad_x = (double*) grad_x_array->data;
-        grad_x_used = 1;
-        py_grad_y = py_grad_y;
-        PyArrayObject* grad_y_array = convert_to_numpy(py_grad_y,"grad_y");
-        conversion_numpy_check_type(grad_y_array,PyArray_DOUBLE,"grad_y");
-        #define GRAD_Y1(i) (*((double*)(grad_y_array->data + (i)*Sgrad_y[0])))
-        #define GRAD_Y2(i,j) (*((double*)(grad_y_array->data + (i)*Sgrad_y[0] + (j)*Sgrad_y[1])))
-        #define GRAD_Y3(i,j,k) (*((double*)(grad_y_array->data + (i)*Sgrad_y[0] + (j)*Sgrad_y[1] + (k)*Sgrad_y[2])))
-        #define GRAD_Y4(i,j,k,l) (*((double*)(grad_y_array->data + (i)*Sgrad_y[0] + (j)*Sgrad_y[1] + (k)*Sgrad_y[2] + (l)*Sgrad_y[3])))
-        npy_intp* Ngrad_y = grad_y_array->dimensions;
-        npy_intp* Sgrad_y = grad_y_array->strides;
-        int Dgrad_y = grad_y_array->nd;
-        double* grad_y = (double*) grad_y_array->data;
-        grad_y_used = 1;
-        py_pos_x = py_pos_x;
-        PyArrayObject* pos_x_array = convert_to_numpy(py_pos_x,"pos_x");
-        conversion_numpy_check_type(pos_x_array,PyArray_DOUBLE,"pos_x");
-        #define POS_X1(i) (*((double*)(pos_x_array->data + (i)*Spos_x[0])))
-        #define POS_X2(i,j) (*((double*)(pos_x_array->data + (i)*Spos_x[0] + (j)*Spos_x[1])))
-        #define POS_X3(i,j,k) (*((double*)(pos_x_array->data + (i)*Spos_x[0] + (j)*Spos_x[1] + (k)*Spos_x[2])))
-        #define POS_X4(i,j,k,l) (*((double*)(pos_x_array->data + (i)*Spos_x[0] + (j)*Spos_x[1] + (k)*Spos_x[2] + (l)*Spos_x[3])))
-        npy_intp* Npos_x = pos_x_array->dimensions;
-        npy_intp* Spos_x = pos_x_array->strides;
-        int Dpos_x = pos_x_array->nd;
-        double* pos_x = (double*) pos_x_array->data;
-        pos_x_used = 1;
-        py_pos_y = py_pos_y;
-        PyArrayObject* pos_y_array = convert_to_numpy(py_pos_y,"pos_y");
-        conversion_numpy_check_type(pos_y_array,PyArray_DOUBLE,"pos_y");
-        #define POS_Y1(i) (*((double*)(pos_y_array->data + (i)*Spos_y[0])))
-        #define POS_Y2(i,j) (*((double*)(pos_y_array->data + (i)*Spos_y[0] + (j)*Spos_y[1])))
-        #define POS_Y3(i,j,k) (*((double*)(pos_y_array->data + (i)*Spos_y[0] + (j)*Spos_y[1] + (k)*Spos_y[2])))
-        #define POS_Y4(i,j,k,l) (*((double*)(pos_y_array->data + (i)*Spos_y[0] + (j)*Spos_y[1] + (k)*Spos_y[2] + (l)*Spos_y[3])))
-        npy_intp* Npos_y = pos_y_array->dimensions;
-        npy_intp* Spos_y = pos_y_array->strides;
-        int Dpos_y = pos_y_array->nd;
-        double* pos_y = (double*) pos_y_array->data;
-        pos_y_used = 1;
-        py_dir_x = py_dir_x;
-        PyArrayObject* dir_x_array = convert_to_numpy(py_dir_x,"dir_x");
-        conversion_numpy_check_type(dir_x_array,PyArray_DOUBLE,"dir_x");
-        #define DIR_X1(i) (*((double*)(dir_x_array->data + (i)*Sdir_x[0])))
-        #define DIR_X2(i,j) (*((double*)(dir_x_array->data + (i)*Sdir_x[0] + (j)*Sdir_x[1])))
-        #define DIR_X3(i,j,k) (*((double*)(dir_x_array->data + (i)*Sdir_x[0] + (j)*Sdir_x[1] + (k)*Sdir_x[2])))
-        #define DIR_X4(i,j,k,l) (*((double*)(dir_x_array->data + (i)*Sdir_x[0] + (j)*Sdir_x[1] + (k)*Sdir_x[2] + (l)*Sdir_x[3])))
-        npy_intp* Ndir_x = dir_x_array->dimensions;
-        npy_intp* Sdir_x = dir_x_array->strides;
-        int Ddir_x = dir_x_array->nd;
-        double* dir_x = (double*) dir_x_array->data;
-        dir_x_used = 1;
-        py_dir_y = py_dir_y;
-        PyArrayObject* dir_y_array = convert_to_numpy(py_dir_y,"dir_y");
-        conversion_numpy_check_type(dir_y_array,PyArray_DOUBLE,"dir_y");
-        #define DIR_Y1(i) (*((double*)(dir_y_array->data + (i)*Sdir_y[0])))
-        #define DIR_Y2(i,j) (*((double*)(dir_y_array->data + (i)*Sdir_y[0] + (j)*Sdir_y[1])))
-        #define DIR_Y3(i,j,k) (*((double*)(dir_y_array->data + (i)*Sdir_y[0] + (j)*Sdir_y[1] + (k)*Sdir_y[2])))
-        #define DIR_Y4(i,j,k,l) (*((double*)(dir_y_array->data + (i)*Sdir_y[0] + (j)*Sdir_y[1] + (k)*Sdir_y[2] + (l)*Sdir_y[3])))
-        npy_intp* Ndir_y = dir_y_array->dimensions;
-        npy_intp* Sdir_y = dir_y_array->strides;
-        int Ddir_y = dir_y_array->nd;
-        double* dir_y = (double*) dir_y_array->data;
-        dir_y_used = 1;
-        /*<function call here>*/     
-        
-            int i, j, k, k2, start_index, end_index, start_index2, end_index2;
-            float grad_i_x, grad_i_y, align_i_x, align_i_y, f_i_x, f_i_y;
-            float beta_ij, ar_slope, ar_interc, r, temp, noise, c, s, v0_i, dis_x, dis_y;
-            // UPDATE DIRECTION
-            start_index = 0;
-            for (k = 0; k < 3; k++) {
-              end_index = cutoff[k];
-        
-              if (pinned[k] == 0) {
-                // Only if i is not pinned
-        
-                // GRADIENT (constant across same species)
-                grad_i_x = grad_x[k];
-                grad_i_y = grad_y[k];
-        
-                for (i = start_index; i < end_index; i++) {
-                  // INITIALIZATION
-                  // Alignment term
-                  align_i_x = 0;
-                  align_i_y = 0;
-                  // A-R term
-                  f_i_x = 0;
-                  f_i_y = 0;
-        
-                  start_index2 = 0;
-                  for (k2 = 0; k2 < 3; k2++) {
-                    end_index2 = cutoff[k2];
-        
-                    beta_ij = beta[k*3 + k2];
-                    ar_slope = (1 + beta_ij) * f0 / (r1 - r0_x_2);
-                    ar_interc = - r0_x_2 * (1 + beta_ij) * f0 / (r1 - r0_x_2) - f0;
-        
-                    for (j = start_index2; j < end_index2; j++) {
-                      if (i != j) {
-                        dis_x = pb_dist(pos_x[i], pos_x[j], size_x);
-                        dis_y = pb_dist(pos_y[i], pos_y[j], size_y);
-                        r = sqrt(pow(dis_x,2)+pow(dis_y,2));
-        
-                        // ALIGNMENT
-                        if (pinned[k2] == 0) {
-                          // Only if j is not pinned
-                          if (r <= rv) {
-                            align_i_x += dir_x[j];
-                            align_i_y += dir_y[j];
-                          }
-                        }
-                        // ATTRACTION-REPULSION
-                        if (r <= r1) {
-                          if (r < r0_x_2) {
-                            // Infinite repulsion
-                            f_i_x += -10000 * dis_x;
-                            f_i_y += -10000 * dis_y;
-                          } else {
-                            // Equilibrium attraction and repulsion
-                            temp = r * ar_slope + ar_interc;
-                            f_i_x += temp * dis_x / r;
-                            f_i_y += temp * dis_y / r;
-                          }
-                        }
-                      }
-                    }
-                  start_index2 = end_index2;
-                  }
-        
-                  // INERTIA
-                  dir_x[i] *= iner_coef;
-                  dir_y[i] *= iner_coef;
-        
-                  // ADD OTHER TERMS
-                  dir_x[i] += grad_i_x + align_i_x + f_i_x;
-                  dir_y[i] += grad_i_y + align_i_y + f_i_y;
-        
-                  // NORMALIZE (ARG)
-                  temp = sqrt(pow(dir_x[i], 2) + pow(dir_y[i], 2));
-                  if (temp > 0) {
-                    //Avoid dividing by zero
-                    dir_x[i] /= temp;
-                    dir_y[i] /= temp;
-                  }
-        
-                  // NOISE
-                  noise = noise_coef*M_PI*((static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*2-1);
-                  c = cos(noise);
-                  s = sin(noise);
-                  temp = dir_x[i];
-                  dir_x[i] = dir_x[i]*c - dir_y[i]*s;
-                  dir_y[i] = temp*s + dir_y[i]*c;
-                }
-              }
-              start_index = end_index;
-            }
-        
-            // UPDATE POSITION
-            start_index = 0;
-            for (k = 0; k < 3; k++) {
-              end_index = cutoff[k];
-        
-              if (pinned[k] == 0) {
-                // Only if the cell type is not pinned
-        
-                // SPEED (constant across same species)
-                v0_i = v0[k];
-        
-                for (i = start_index; i < end_index; i++) {
-                  pos_x[i] += v0_i * dir_x[i];
-                  pos_x[i] = pb_fitInto(pos_x[i], size_x);
-                  pos_y[i] += v0_i * dir_y[i];
-                  pos_y[i] = pb_fitInto(pos_y[i], size_y);
-                }
-              }
-        
-              start_index = end_index;
-            }
-        if(py_local_dict)                                  
-        {                                                  
-            py::dict local_dict = py::dict(py_local_dict); 
-        }                                                  
-    
-    }                                
-    catch(...)                       
-    {                                
-        return_val =  py::object();      
-        exception_occurred = 1;       
-    }                                
-    /*cleanup code*/                     
-    if(v0_used)
-    {
-        Py_XDECREF(py_v0);
-        #undef V01
-        #undef V02
-        #undef V03
-        #undef V04
-    }
-    if(pinned_used)
-    {
-        Py_XDECREF(py_pinned);
-        #undef PINNED1
-        #undef PINNED2
-        #undef PINNED3
-        #undef PINNED4
-    }
-    if(cutoff_used)
-    {
-        Py_XDECREF(py_cutoff);
-        #undef CUTOFF1
-        #undef CUTOFF2
-        #undef CUTOFF3
-        #undef CUTOFF4
-    }
-    if(beta_used)
-    {
-        Py_XDECREF(py_beta);
-        #undef BETA1
-        #undef BETA2
-        #undef BETA3
-        #undef BETA4
-    }
-    if(grad_x_used)
-    {
-        Py_XDECREF(py_grad_x);
-        #undef GRAD_X1
-        #undef GRAD_X2
-        #undef GRAD_X3
-        #undef GRAD_X4
-    }
-    if(grad_y_used)
-    {
-        Py_XDECREF(py_grad_y);
-        #undef GRAD_Y1
-        #undef GRAD_Y2
-        #undef GRAD_Y3
-        #undef GRAD_Y4
-    }
-    if(pos_x_used)
-    {
-        Py_XDECREF(py_pos_x);
-        #undef POS_X1
-        #undef POS_X2
-        #undef POS_X3
-        #undef POS_X4
-    }
-    if(pos_y_used)
-    {
-        Py_XDECREF(py_pos_y);
-        #undef POS_Y1
-        #undef POS_Y2
-        #undef POS_Y3
-        #undef POS_Y4
-    }
-    if(dir_x_used)
-    {
-        Py_XDECREF(py_dir_x);
-        #undef DIR_X1
-        #undef DIR_X2
-        #undef DIR_X3
-        #undef DIR_X4
-    }
-    if(dir_y_used)
-    {
-        Py_XDECREF(py_dir_y);
-        #undef DIR_Y1
-        #undef DIR_Y2
-        #undef DIR_Y3
-        #undef DIR_Y4
+        Py_XDECREF(py_global_stats);
+        #undef GLOBAL_STATS1
+        #undef GLOBAL_STATS2
+        #undef GLOBAL_STATS3
+        #undef GLOBAL_STATS4
     }
     if(!(PyObject*)return_val && !exception_occurred)
     {
@@ -1412,7 +1073,6 @@ static PyObject* pb_tick(PyObject*self, PyObject* args, PyObject* kywds)
 static PyMethodDef compiled_methods[] = 
 {
     {"fb_tick",(PyCFunction)fb_tick , METH_VARARGS|METH_KEYWORDS},
-    {"pb_tick",(PyCFunction)pb_tick , METH_VARARGS|METH_KEYWORDS},
     {NULL,      NULL}        /* Sentinel */
 };
 

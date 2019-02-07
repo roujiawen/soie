@@ -103,7 +103,7 @@ class SessionData(object):
         "param_info":self.param_info,
         "advanced_mutate":self.advanced_mutate}
         with open(RECORD_PATH, "w") as f:
-            f.write("inf=float('inf')\nRECORD_DATA="+str(combined))
+            f.write("inf=float('inf')\nnan=float('nan')\nRECORD_DATA="+str(combined))
 
     @property
     def movement(self):
@@ -201,14 +201,14 @@ class App(Frame):
         self.top_frames = [self.mutate_frame, self.cross_frame, self.insert_lib_frame]
         self.current_top_frame = self.buttons_frame
 
-        # try:
-        if flag==True:
-            for subattr, model_info in RECORD_DATA["models"].items():
-                for sim, i in zip(sims, range(9)):
-                    session.set("models", subattr, sim, model_info[i])
-            self.population.load_prev_session()
-        # except:
-        #     print "ERROR when restoring previous session"
+        try:
+            if flag==True:
+                for subattr, model_info in RECORD_DATA["models"].items():
+                    for sim, i in zip(sims, range(9)):
+                        session.set("models", subattr, sim, model_info[i])
+                self.population.load_prev_session()
+        except:
+            print "ERROR when restoring previous session"
 
         # menu bar
         def set_general(which, value):
