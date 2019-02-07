@@ -103,7 +103,7 @@ class SessionData(object):
         "param_info":self.param_info,
         "advanced_mutate":self.advanced_mutate}
         with open(RECORD_PATH, "w") as f:
-            f.write("inf=float('inf')\nnan=float('nan')\nRECORD_DATA="+str(combined))
+            f.write("inf=float('inf')\nRECORD_DATA="+str(combined))
 
     @property
     def movement(self):

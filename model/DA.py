@@ -27,6 +27,14 @@ class Model(object):
         self.pinned_num = np.sum(self.internal_params["pinned"])
         self.periodic_boundary = periodic_boundary
 
+    @property
+    def order_parameters(self):
+        return list(self.global_stats[1,:])
+
+    @property
+    def group_angular_momentum(self):
+        return list(self.global_stats[0,:])
+
     def gen_internal_params(self, scale_factor):
         """
         Formatting user-provided parameters into internal parameters accepted
@@ -148,7 +156,10 @@ class Model(object):
         self.global_stats = np.hstack([self.global_stats, global_stats_slice.reshape(N_GLOBAL_STATS, steps)])
 
     def pb_tick(self, steps):
-        c_model.pb_tick(*self.internal_params.values()+[self.x, self.y, self.dir_x, self.dir_y])
+        global_stats_slice = np.zeros(N_GLOBAL_STATS * steps)
+        c_model.pb_tick(*self.internal_params.values()+[self.x, self.y, self.dir_x, self.dir_y, global_stats_slice, steps])
+        self.global_stats = np.hstack([self.global_stats, global_stats_slice.reshape(N_GLOBAL_STATS, steps)])
+
 
     def set(self, state, properties):
         """
@@ -186,22 +197,21 @@ def main():
     'Cell Density': 0.5,
     'Angular Inertia': 1.,
     'Alignment Force': 0.,
-    'Pinned Cells': ['none', 'circle', 'none'],
+    'Pinned Cells': ['none', 'none', 'none'],
     'Velocity': [0.085, 0.034, 0.086],
     'Gradient Direction': [0.79, 0.47, 1.83],
     'Alignment Range': 11.1,
     'Adhesion': [[3.25, 1.1300000000000001, 1.15], [1.1300000000000001, 1.36, 4.0], [1.15, 4.0, 1.48]],
     'Interaction Force': 5.,
-    'Cell Ratio': [0.5, 0.5, 0],
+    'Cell Ratio': [1.0, 0., 0],
     'Noise Intensity': 0.28,
     'Interaction Range': 50.2}
 
     sf = 1.0
-    m = Model(params, scale_factor=sf, periodic_boundary=False)
+    m = Model(params, scale_factor=sf, periodic_boundary=True)
     m.init_particles_state()
 
-    m.tick(25)
-    print m.global_stats
+    m.tick(50)
 
     print("--- %s seconds ---" % (time.time() - start_time))
 

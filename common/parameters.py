@@ -34,8 +34,8 @@ PARAM_INFO = {
 
     "Interaction Range" :
     {
-        "range" : [1.01, 20.0],
-        "min" : 1.0,
+        "range" : [2.01, 20.0],
+        "min" : 2.0,
         "max" : 50.0,
         "resolution" : 0.01,
         "roundto" : 2
@@ -43,8 +43,8 @@ PARAM_INFO = {
 
     "Alignment Range" :
     {
-        "range" : [1.01, 20.0],
-        "min" : 1.0,
+        "range" : [2.01, 20.0],
+        "min" : 2.0,
         "max" : 50.0,
         "resolution" : 0.01,
         "roundto" : 2

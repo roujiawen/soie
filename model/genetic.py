@@ -66,8 +66,7 @@ class Phenotype(object):
 
     def run_model(self, n):
         #call SPP model
-        for i in range(n):
-            self.model.tick()
+        self.model.tick(n)
 
 class GenoGenerator(object):
     @staticmethod
