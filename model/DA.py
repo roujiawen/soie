@@ -9,7 +9,12 @@ else:
 
 CORE_RADIUS = 0.1
 FIELD_SIZE = 10.0
-N_GLOBAL_STATS = 2
+N_GLOBAL_STATS = 5
+
+def counts2slices(counts):
+    cumu = [sum(counts[:i]) for i in range(len(counts)+1)]
+    slices = [slice(cumu[i-1], cumu[i]) for i in range(1, len(cumu))]
+    return slices
 
 class Model(object):
     def __init__(self, params, scale_factor=2., periodic_boundary=False):
@@ -65,11 +70,12 @@ class Model(object):
         # Pinned = 0 (none) or 1 (fixed)
         pinned = np.array([0 if x == "none" else 1 for x in uprm["Pinned Cells"]]
                           ).astype(np.int32)
-        # Convert ratio to cutoff
+        # Convert ratio to number of cells in each species
         ratios = uprm["Cell Ratio"][:2]
-        cumu_ratio = [sum(ratios[:i+1]) for i in range(len(ratios))] + [1.0]
-        cutoff = np.array([int(nop*each) for each in cumu_ratio]).astype(np.int32)
-
+        cumu_ratios = [sum(ratios[:i+1]) for i in range(len(ratios))] + [1.0]
+        cumu_n_per_species = [0] + [int(nop*each) for each in cumu_ratios]
+        n_per_species = np.array([cumu_n_per_species[i] - cumu_n_per_species[i-1]
+                    for i in range(1, len(cumu_n_per_species))]).astype(np.int32)
         # Gradient from polar to cartesian
         grad_x = np.array([np.cos(d*pi) * i for d, i
                 in zip(uprm["Gradient Direction"], uprm["Gradient Intensity"])])
@@ -77,15 +83,13 @@ class Model(object):
                 in zip(uprm["Gradient Direction"], uprm["Gradient Intensity"])])
 
         # Effective number of particles (excluding pinned)
-        bd = [0] + list(cutoff)
-        counts = [bd[i+1] - bd[i] for i in range(len(bd)-1)]
-        eff_nop = float(np.sum([counts[i] for i in range(len(counts)) if pinned[i] == 0]))
+        eff_nop = float(np.sum([[i] for i in range(len(n_per_species)) if pinned[i] == 0]))
 
         names = [
             'nop', 'eff_nop', 'xlim', 'ylim',
             'r0_x_2', 'r1', 'ra', # radii
             'iner_coef', 'f0', 'fa','noise_coef', # strengths
-            'v0', 'pinned', 'cutoff', 'beta', 'grad_x', 'grad_y' # arrays
+            'v0', 'pinned', 'n_per_species', 'beta', 'grad_x', 'grad_y' # arrays
             ]
         internal_params = OrderedDict([(x, locals()[x]) for x in names])
         return internal_params
@@ -96,7 +100,7 @@ class Model(object):
         """
         iprm, uprm = self.internal_params, self.user_params
         nop, xlim, ylim = iprm['nop'], iprm['xlim'], iprm['ylim']
-        cutoff = iprm['cutoff']
+        n_per_species = iprm['n_per_species']
 
         # Randomize position
         pos_x = np.random.random(nop) * xlim
@@ -107,11 +111,9 @@ class Model(object):
         dir_x = np.cos(theta)
         dir_y = np.sin(theta)
 
-        # For different types
-        bd = [0] + list(iprm['cutoff'])
-        types = [slice(bd[i-1], bd[i]) for i in range(1, len(bd))]
-
         # Randomize pinned shape
+        # For different types
+        types = counts2slices(n_per_species)
         for type_, pinned_shape in zip(types, uprm["Pinned Cells"]):
             if pinned_shape != "none":
                 n = type_.stop - type_.start # length of the slice
@@ -165,7 +167,7 @@ class Model(object):
         """
         coords, vlcty: [[[x],[y]],[blue], [green]]
         """
-        ntypes = len(self.internal_params["cutoff"])
+        ntypes = len(self.internal_params["n_per_species"])
         coords, vlcty = state
         self.global_stats = properties
 
@@ -175,17 +177,13 @@ class Model(object):
         self.dir_y = np.concatenate([vlcty[i][1] for i in range(ntypes)])
 
     def get(self):
-        cutoff = self.internal_params["cutoff"]
+        n_per_species = self.internal_params["n_per_species"]
         x, y, dir_x, dir_y = self.x, self.y, self.dir_x, self.dir_y
         coords = []
         vlcty = []
-
-        start_index = 0
-        for i, end_index in enumerate(cutoff):
-            coords.append([list(x[start_index:end_index]), list(y[start_index:end_index])])
-            vlcty.append([list(dir_x[start_index:end_index]), list(dir_y[start_index:end_index])])
-            start_index = end_index
-
+        for i, slice_ in enumerate(counts2slices(n_per_species)):
+            coords.append([list(x[slice_]), list(y[slice_])])
+            vlcty.append([list(dir_x[slice_]), list(dir_y[slice_])])
         return (coords, vlcty)
 
 def main():

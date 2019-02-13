@@ -18,7 +18,7 @@ def weave_compile():
         'Attraction-Repulsion Range': 10.2}
 
     steps = 1
-    N_GLOBAL_STATS = 2
+    N_GLOBAL_STATS = 5
     global_stats = np.zeros(N_GLOBAL_STATS * steps)
 
 
@@ -37,7 +37,7 @@ def weave_compile():
     fa = params["Alignment Strength"]
     v0 = np.array(params["Velocity"])*sf
     beta = np.array(params["Affinity"])
-    cutoff = np.array([n/2, n+1]).astype(np.int32)
+    n_per_species = np.array([n/2, n+1]).astype(np.int32)
     grad_x = np.array([np.cos(d*np.pi) * i for d, i in zip(params["Gradient Angle"], params["Gradient Intensity"])])
     grad_y = np.array([np.sin(d*np.pi) * i for d, i in zip(params["Gradient Angle"], params["Gradient Intensity"])])
     pinned = np.array([0 if x == "none" else 1 for x in params["Pinned Cells"]]).astype(np.int32)
@@ -87,7 +87,7 @@ def weave_compile():
         // UPDATE DIRECTION
         start_index = 0;
         for (k = 0; k < 3; k++) {
-          end_index = cutoff[k];
+          end_index = start_index + n_per_species[k];
 
           if (pinned[k] == 0) {
             // Only if i is not pinned
@@ -107,7 +107,7 @@ def weave_compile():
 
               start_index2 = 0;
               for (k2 = 0; k2 < 3; k2++) {
-                end_index2 = cutoff[k2];
+                end_index2 = start_index2 + n_per_species[k2];
 
                 beta_ij = beta[k*3 + k2];
                 ar_slope = (1 + beta_ij) * f0 / (r1 - r0_x_2);
@@ -179,7 +179,7 @@ def weave_compile():
         // UPDATE POSITION
         start_index = 0;
         for (k = 0; k < 3; k++) {
-          end_index = cutoff[k];
+          end_index = start_index + n_per_species[k];
 
           if (pinned[k] == 0) {
             // Only if the cell type is not pinned
@@ -265,7 +265,7 @@ def weave_compile():
         // UPDATE DIRECTION
         start_index = 0;
         for (k = 0; k < 3; k++) {
-          end_index = cutoff[k];
+          end_index = start_index + n_per_species[k];
 
           if (pinned[k] == 0) {
             // Only if i is not pinned
@@ -285,7 +285,7 @@ def weave_compile():
 
               start_index2 = 0;
               for (k2 = 0; k2 < 3; k2++) {
-                end_index2 = cutoff[k2];
+                end_index2 = start_index2 + n_per_species[k2];
 
                 beta_ij = beta[k*3 + k2];
                 ar_slope = (1 + beta_ij) * f0 / (r1 - r0_x_2);
@@ -358,7 +358,7 @@ def weave_compile():
         // UPDATE POSITION
         start_index = 0;
         for (k = 0; k < 3; k++) {
-          end_index = cutoff[k];
+          end_index = start_index + n_per_species[k];
 
           if (pinned[k] == 0) {
             // Only if the cell type is not pinned
@@ -415,7 +415,7 @@ def weave_compile():
     fb_tick_func = ext_tools.ext_function('fb_tick',fb_main_code,
                     ["n", "eff_nop", "size_x", "size_y","r0_x_2","r1","rv",
                      "iner_coef", "f0","fa", "noise_coef", "v0", "pinned",
-                       "cutoff", "beta", "grad_x", "grad_y",
+                       "n_per_species", "beta", "grad_x", "grad_y",
                        "pos_x","pos_y","dir_x","dir_y", "global_stats", "steps"])
     fb_tick_func.customize.add_support_code(fb_dist)
     fb_tick_func.customize.add_support_code(fb_fit)
@@ -426,7 +426,7 @@ def weave_compile():
     pb_tick_func = ext_tools.ext_function('pb_tick',pb_main_code,
                     ["n", "eff_nop", "size_x", "size_y","r0_x_2","r1","rv",
                      "iner_coef", "f0","fa", "noise_coef", "v0", "pinned",
-                       "cutoff", "beta", "grad_x", "grad_y",
+                       "n_per_species", "beta", "grad_x", "grad_y",
                        "pos_x","pos_y","dir_x","dir_y", "global_stats", "steps"])
     pb_tick_func.customize.add_support_code(pb_dist)
     pb_tick_func.customize.add_support_code(pb_fit)
