@@ -163,9 +163,9 @@ class SimInfoFrame(Frame):
         import numpy as np
         self.session = session
         self.sim = sim
-        session.bind("params", sim, self.update_params)
-        session.bind("properties", sim, self.update_properties)
-        session.bind("step", sim, self.update_step)
+        sim.bind("params", self.update_params)
+        sim.bind("properties", self.update_properties)
+        sim.bind("step", self.update_step)
 
         self.default_steps_strvar = strvar
         self.grid_propagate(0)
@@ -234,16 +234,15 @@ class SimInfoFrame(Frame):
 
     def update_step(self):
         #update step
-        step = self.session.models["step"][self.sim]
+        step = self.sim.step
         self.steps_strvar.set("Step = {}".format(step))
 
     def update_properties(self):
         #update properties
         self.property_plot.plot_properties(self.session, self.sim)
 
-
     def update_params(self):
-        new_params = self.session.models["params"][self.sim]
+        new_params = self.sim.params
         #update params
         for name, value in new_params.items():
             self.params[name].set(value)

@@ -54,7 +54,7 @@ class Phenotype(object):
 
     @property
     def properties(self):
-        return self.model.order_parameters, self.model.group_angular_momentum
+        return self.model.global_stats
 
     @property
     def state(self):
@@ -215,20 +215,61 @@ class Simulation(object):
         self.phenotype = None
         self.geno_generator = geno_generator
         self.session = session
-        def do_nothing(*args):
-            pass
-        self.update_graph = do_nothing
-        self.update_info = do_nothing
+        self.bindings = {"params": [], "state": [], "properties":[], "step":[]}
 
     def __repr__(self):
         return self.id
 
+    @property
+    def params(self):
+        return self.genotype.parameters
+
+    @property
+    def state(self):
+        return self.phenotype.state
+
+    @property
+    def step(self):
+        return self.phenotype.step
+
+    @property
+    def properties(self):
+        return self.phenotype.properties
+
+    def bind(self, data_name, func, first=False):
+        """Bind functions to data; if data changes, the binded functions are
+        called. the `first` flag specifies whether to prioritize the given
+        function when calling a sequence of functions.
+
+        Parameters
+        ----------
+        data_name : str
+            {"params", "state", "properties", "step"}
+        func : <function>
+            Function to be binded to given data name
+
+        """
+        if first:
+            self.bindings[data_name].insert(0, func)
+        else:
+            self.bindings[data_name].append(func)
+
+    def unbind(self, data_name, func):
+        """Remove a function from the list of binded functions.
+        """
+        self.bindings[data_name].remove(func)
+
+    def call_bindings(self, data_name):
+        for each_func in self.bindings[data_name]:
+            each_func()
+
     def load_prev_session(self):
+        #TODO fix
         session = self.session
         sf, pb, vt = session.pheno_settings
-        params = session.models["params"][self]
-        state, properties = session.models["state"][self], session.models["properties"][self]
-        step = session.models["step"][self]
+        # params = session.models["params"][self]
+        # state, properties = session.models["state"][self], session.models["properties"][self]
+        # step = session.models["step"][self]
         self.genotype = Genotype(params)
         self.phenotype = Phenotype(self.genotype, sf, pb, prev=True)
         self.phenotype.model.set(state, properties)
@@ -236,16 +277,15 @@ class Simulation(object):
 
     def update_phenotype(self):
         sf, pb, vt = self.session.pheno_settings
-        p = Phenotype(self.genotype, sf, pb)
-        self.phenotype = p
-        self.session.set("models", "state", self, p.state)
-        self.session.set("models", "step", self, p.step)
-        self.session.set("models", "properties", self, p.properties)
+        self.phenotype = Phenotype(self.genotype, sf, pb)
+        self.call_bindings("state")
+        self.call_bindings("step")
+        self.call_bindings("properties")
 
     def insert_new_genotype(self, new_genotype):
         # input: a Genotype object
         self.genotype = new_genotype
-        self.session.set("models", "params", self, new_genotype.parameters)
+        self.call_bindings("params")
         self.update_phenotype()
 
     def insert_new_param(self, parameters):
@@ -265,7 +305,6 @@ class Simulation(object):
 
     def add_steps(self, n):
         movement = self.session.movement
-        p = self.phenotype
         if movement is False:
             intervals = [n]
         else:
@@ -274,11 +313,10 @@ class Simulation(object):
                 intervals.append(n % movement)
 
         for step in intervals:
-            p.add_steps(step)
-            self.session.set("models", "state", self, p.state)
-            self.session.set("models", "step", self, p.step)
-        self.session.set("models", "properties", self, p.properties)
-
+            self.phenotype.add_steps(step)
+            self.call_bindings("state")
+            self.call_bindings("step")
+        self.call_bindings("properties")
 
 class Population(object):
     def __init__(self, session):
@@ -369,11 +407,11 @@ class Population(object):
             with concurrent.futures.ProcessPoolExecutor() as executor:
                 for p, i in executor.map(ticks, args):
                     self.simulations[i].phenotype = p
-                    self.session.set("models", "state", self.simulations[i], p.state)
-                    self.session.set("models", "step", self.simulations[i], p.step)
+                    self.simulations[i].call_bindings("state")
+                    self.simulations[i].call_bindings("step")
 
         for each in self.simulations:
-            self.session.set("models", "properties", each, each.phenotype.properties)
+            each.call_bindings("properties")
 
 
 if __name__ == "__main__":

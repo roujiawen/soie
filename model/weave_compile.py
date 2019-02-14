@@ -76,7 +76,8 @@ def weave_compile():
     int i, j, k, k2, start_index, end_index, start_index2, end_index2, ith_step;
     double grad_i_x, grad_i_y, align_i_x, align_i_y, f_i_x, f_i_y;
     double beta_ij, ar_slope, ar_interc, r, temp, noise, c, s, v0_i;
-    double stat_align_x, stat_align_y, cm_x, cm_y, rel_pos_x, rel_pos_y, stat_angular;
+    double stat_align_x, stat_align_y, cm_x, cm_y, rel_pos_x, rel_pos_y, stat_angular, stat_seg;
+    int ingroup_nb, total_nb;
 
     for (ith_step = 0; ith_step < steps; ith_step++) {
         stat_align_x = 0;
@@ -88,6 +89,7 @@ def weave_compile():
         start_index = 0;
         for (k = 0; k < 3; k++) {
           end_index = start_index + n_per_species[k];
+          stat_seg = 0;
 
           if (pinned[k] == 0) {
             // Only if i is not pinned
@@ -104,6 +106,9 @@ def weave_compile():
               // A-R term
               f_i_x = 0;
               f_i_y = 0;
+              // STAT_SEG
+              ingroup_nb = 0;
+              total_nb = 0;
 
               start_index2 = 0;
               for (k2 = 0; k2 < 3; k2++) {
@@ -126,6 +131,11 @@ def weave_compile():
                     }
                     // ATTRACTION-REPULSION
                     if (r <= r1) {
+                      // STAT_SEG
+                      if (k == k2) {
+                        ingroup_nb += 1;
+                      }
+                      total_nb += 1;
                       if (r < r0_x_2) {
                         // Infinite repulsion
                         f_i_x += -10000 * (pos_x[j] - pos_x[i]);
@@ -171,8 +181,20 @@ def weave_compile():
               // STAT_ALIGN
               stat_align_x += dir_x[i];
               stat_align_y += dir_y[i];
+
+              // STAT_SEG
+              if (total_nb > 0) {
+                stat_seg += ingroup_nb / (double) total_nb;
+              }
             }
           }
+
+          // SEGREGATION PARAMETER (2,3,4*steps+ith_step)
+          if (n_per_species[k] > 0) {
+            stat_seg /= (double) n_per_species[k];
+          }
+          global_stats[(2+k) * steps + ith_step] = stat_seg;
+
           start_index = end_index;
         }
 

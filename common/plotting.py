@@ -43,8 +43,8 @@ class PlotWidget(object):
 
     def plot_sim(self, session, sim, dots):
         scale_factor, velocity_trace = session.sf, session.vt
-        new_graph_data = session.models["state"][sim]
-        species_velocity = session.models["params"][sim]["Velocity"]
+        new_graph_data = sim.state
+        species_velocity = sim.params["Velocity"]
         coords, vlcty = new_graph_data
         colors = CELL_COLORS
         self.clear()
@@ -68,7 +68,7 @@ class PlotWidget(object):
         self.draw()
 
     def plot_properties(self, session, sim):
-        properties = session.models["properties"][sim]
+        properties = sim.properties
         self.clear()
 
         def process(values):
@@ -78,9 +78,11 @@ class PlotWidget(object):
                 x = x[-200:]
             return x, values
 
-        order_parameters, group_angular_momentum = properties
-        self.plot(*process(order_parameters), linewidth = 0.5, color="crimson", label="order")
-        self.plot(*process(group_angular_momentum), linewidth = 0.5, color="darkslateblue", label="angular momentum")
+        #self.plot(*process(properties[0,:]), linewidth = 0.5, color="darkslateblue", label="angular momentum")
+        #self.plot(*process(properties[1,:]), linewidth = 0.5, color="crimson", label="order")
+        self.plot(*process(properties[2,:]), linewidth = 0.5, color="darkslateblue", label="segragation1")
+        self.plot(*process(properties[3,:]), linewidth = 0.5, color="crimson", label="segragation2")
+        self.plot(*process(properties[4,:]), linewidth = 0.5, color="green", label="segragation3")
         self.small_legend()
         self.draw()
 

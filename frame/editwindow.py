@@ -374,9 +374,9 @@ class EditFrame(Frame):
         Frame.__init__(self, parent)
         self.sim = sim
         self.session = session
-        session.priority_bind("params", sim, self.update_params)
-        session.priority_bind("step", sim, self.update_step)
-        params = copy(session.models["params"][sim])
+        sim.bind("params", self.update_params, first=True)
+        sim.bind("step", self.update_step, first=True)
+        params = copy(sim.params)
         param_info = session.param_info
         total_columns = 2
         header_space = 7
@@ -448,11 +448,11 @@ class EditFrame(Frame):
         temp.grid(columnspan=2, pady=(20,4))
 
     def update_step(self):
-        step = self.session.models["step"][self.sim]
+        step = self.sim.step
         self.steps_strvar.set("Step = {}".format(step))
 
     def update_params(self):
-        params = self.session.models["params"][self.sim]
+        params = self.sim.params
         for name, w in self.pwidgets.items():
             w.set_value(params[name])
 
@@ -472,9 +472,10 @@ class EditFrame(Frame):
     def apply(self):
         new_params = self.retrieve_params()
         self.sim.insert_new_param(new_params)
+
     def unbind(self):
-        self.session.unbind("params", self.sim, self.update_params)
-        self.session.unbind("step", self.sim, self.update_step)
+        self.sim.unbind("params", self.update_params)
+        self.sim.unbind("step", self.update_step)
 
 class EditWindow(Frame):
     def __init__(self, parent, master, session, sim, graph_figsize=(5,5), property_figsize=(5,1.6), dpi=100):
@@ -485,8 +486,8 @@ class EditWindow(Frame):
         self.parent = parent
         self.session = session
         session.bind("vt", self.update_graph)
-        session.priority_bind("properties", sim, self.update_properties)
-        session.priority_bind("state", sim, self.update_graph)
+        sim.bind("properties", self.update_properties, first=True)
+        sim.bind("state", self.update_graph, first=True)
         self.sim = sim
         master.wm_title("Edit Simulation")
         master.protocol('WM_DELETE_WINDOW', self.close)
@@ -525,8 +526,8 @@ class EditWindow(Frame):
 
     def close(self):
         self.session.unbind("vt", self.update_graph)
-        self.session.unbind("state", self.sim, self.update_graph)
-        self.session.unbind("properties", self.sim, self.update_properties)
+        self.sim.unbind("state", self.update_graph)
+        self.sim.unbind("properties", self.update_properties)
         self.edit_frame.unbind()
         self.master.destroy()
         self.parent.unfreeze()

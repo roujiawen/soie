@@ -16,13 +16,6 @@ RECORD_PATH = os.path.join(os.path.dirname(__file__), "customdata/record.py")
 
 class SessionData(object):
     """
-    models = {
-    "properties": {model1:..., model2:...},
-    "state": ...,
-    "step": ...,
-    }
-
-    models[subattr][which] = value
 
     GENERAL_SETTINGS = {
         "show_tail" : 0,
@@ -45,43 +38,22 @@ class SessionData(object):
     def __init__(self):
         self.param_info = {}
         self.general_settings = {}
-        self.models = {_:{} for _ in ["params", "state", "properties", "step"]}
         self.bindings = {"general_settings":[], "param_info":[], "vt":[],
-        "advanced_mutate":[],
-        "params": {}, "state": {}, "properties":{}, "step":{}}
+        "advanced_mutate":[]}
         self.advanced_mutate = {}
 
-    def unbind(self, attr, *args):
-        if len(args) == 1:
-            func = args[0]
-            self.bindings[attr].remove(func)
-        else:
-            which, func = args
-            self.bindings[attr][which].remove(func)
+    def unbind(self, attr, func):
+        self.bindings[attr].remove(func)
 
-    def priority_bind(self, attr, *args):
-        if len(args) == 1:
-            func = args[0]
-            self.bindings[attr].insert(0,func)
-        else:
-            which, func = args
-            self.bindings[attr][which].insert(0,func)
+    def bind_first(self, attr, func):
+        self.bindings[attr].insert(0,func)
 
-    def bind(self, attr, *args):
-        if len(args) == 1:
-            func = args[0]
-            self.bindings[attr].append(func)
-        else:
-            which, func = args
-            self.bindings[attr][which].append(func)
+    def bind(self, attr, func):
+        self.bindings[attr].append(func)
 
-    def update(self, attr, which=None):
-        if which is None:
-            for each in self.bindings[attr]:
-                each()
-        else:
-            for each in self.bindings[attr][which]:
-                each()
+    def update(self, attr):
+        for each in self.bindings[attr]:
+            each()
 
     def set(self, attr, *args):
         if len(args) == 0:
@@ -91,19 +63,17 @@ class SessionData(object):
         if len(args) == 1:
             setattr(self, attr, args[0])
             self.update(attr)
-        else:
-            subattr, which, value = args
-            self.models[subattr][which] = value
-            self.update(subattr, which)
-        self.write()
+
+        #self.write()
 
     def write(self):
-        combined = {"models":self.models,
-        "general_settings":self.general_settings,
-        "param_info":self.param_info,
-        "advanced_mutate":self.advanced_mutate}
+        #TODO: fix writing record
+        # combined = {"models":self.models,
+        # "general_settings":self.general_settings,
+        # "param_info":self.param_info,
+        # "advanced_mutate":self.advanced_mutate}
         with open(RECORD_PATH, "w") as f:
-            f.write("inf=float('inf')\nRECORD_DATA="+str(combined))
+           f.write("inf=float('inf')\nRECORD_DATA="+str(combined))
 
     @property
     def movement(self):
@@ -164,8 +134,6 @@ class App(Frame):
         #Population
         self.population = Population(session)
         sims = self.population.simulations
-        for each in ["params", "state", "properties", "step"]:
-            session.bindings[each] = {_:[] for _ in sims}
 
         #RIGHT
         self.advanced_mutate_frame = AdvancedMutateFrame(self, session)
@@ -173,17 +141,11 @@ class App(Frame):
         self.sim_info_frames = [SimInfoFrame(self, session, sims[_], self.info_default_steps_strvar) for _ in range(9)]
         self.right_frames = self.sim_info_frames + [self.advanced_mutate_frame]
 
-
-
         #BOTTOMLEFT
         self.sims_frame = SimsFrame(self, session, sims, self.sim_info_frames, self.get_top_frame)
 
-
-
-        # Linking simulations and graph frames
+        # Linking add_steps function #TODO: refactorize?
         for sim, gframe in zip(self.population.simulations, self.sims_frame.graphs):
-            # update display: graphs and info
-            sim.update_graph = gframe.update_graph
             # control: add_step
             gframe.info_frame.steps_widget.func = sim.add_steps
 
@@ -201,14 +163,15 @@ class App(Frame):
         self.top_frames = [self.mutate_frame, self.cross_frame, self.insert_lib_frame]
         self.current_top_frame = self.buttons_frame
 
-        try:
-            if flag==True:
-                for subattr, model_info in RECORD_DATA["models"].items():
-                    for sim, i in zip(sims, range(9)):
-                        session.set("models", subattr, sim, model_info[i])
-                self.population.load_prev_session()
-        except:
-            print "ERROR when restoring previous session"
+        #TODO: fix loading prev session
+        # try:
+        #     if flag==True:
+        #         for subattr, model_info in RECORD_DATA["models"].items():
+        #             for sim, i in zip(sims, range(9)):
+        #                 session.set("models", subattr, sim, model_info[i])
+        #         self.population.load_prev_session()
+        # except:
+        #     print "ERROR when restoring previous session"
 
         # menu bar
         def set_general(which, value):

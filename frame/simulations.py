@@ -9,7 +9,7 @@ class GraphFrame(Frame):
         Frame.__init__(self, parent)
         self.parent = parent
         self.session = session
-        session.bind("state", sim, self.update_graph)
+        sim.bind("state", self.update_graph)
         session.bind("vt", self.update_graph)
         self.sim = sim
         self.info_frame = info_frame
