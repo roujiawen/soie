@@ -1,5 +1,5 @@
+from Tkinter import *
 from common.styles import *
-from common.tools import *
 from common.parameters import PARAM
 from copy import deepcopy, copy
 

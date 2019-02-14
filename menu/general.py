@@ -1,5 +1,6 @@
+from Tkinter import *
 from common.styles import *
-from common.tools import *
+from common.tools import fit_into
 from copy import deepcopy
 
 GENERAL_SETTINGS_LG_FONT = ('Helvetica', '12')

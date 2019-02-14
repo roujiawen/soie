@@ -1,7 +1,8 @@
 import os
 import json
+from Tkinter import *
 from common.styles import *
-from common.tools import *
+from common.io_utils import load_params, delete_gene
 from PIL import ImageTk, Image
 
 NCOL = 5

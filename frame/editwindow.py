@@ -1,5 +1,6 @@
+from Tkinter import *
 from common.styles import *
-from common.tools import *
+from common.tools import fit_into
 from common.parameters import *
 from common.plotting import PlotWidget
 from frame.top import AddStepsWidget

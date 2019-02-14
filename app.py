@@ -3,7 +3,8 @@ import ttk
 import os
 from copy import copy, deepcopy
 from common.styles import *
-from common.tools import read_json, delete_all_genes, is_within
+from common.tools import is_within
+from common.io_utils import delete_all_genes
 from frame.top import ButtonsFrame, MutateFrame, CrossFrame, InsertLibFrame
 from frame.siminfo import SimInfoFrame
 from frame.advancedmutate import AdvancedMutateFrame
@@ -263,8 +264,6 @@ class App(Frame):
 
         for each in ["param_info","general_settings", "advanced_mutate"]:
             session.update(each)
-        #self.top_frames = [self.buttons_frame, self.mutate_frame, self.cross_frame, self.insert_lib_frame]
-        #self.buttons_frame.freeze()
 
         for each in self.top_frames:
             each.grid(row=0, column=0, sticky="we")

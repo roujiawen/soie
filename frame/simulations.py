@@ -1,5 +1,6 @@
+from Tkinter import *
 from common.styles import *
-from common.tools import *
+from common.io_utils import save_gene
 from common.plotting import PlotWidget
 from frame.editwindow import EditWindow
 import tkMessageBox
@@ -60,14 +61,11 @@ class GraphFrame(Frame):
         self.state = "DISABLED"
         for each in [0,2,3,6]:
             self.popup_menu.entryconfigure(each,state=DISABLED)
-        #recursive_freeze(self.info_frame)
 
     def unfreeze(self):
         self.state = "NORMAL"
         for each in [0,2,3,6]:
             self.popup_menu.entryconfigure(each,state=NORMAL)
-        #recursive_unfreeze(self.info_frame)
-        #self.info_frame.update()
 
     def restart(self):
         self.on_click()

@@ -1,5 +1,6 @@
+from Tkinter import *
 from common.styles import *
-from common.tools import *
+from common.tools import create_buttons, is_within
 
 class ReversedCheckbutton(Frame):
     def __init__(self, parent, text, variable, command):
@@ -102,9 +103,6 @@ class ButtonsFrame(Frame):
         new_settings = self.session.general_settings
         new_settings["show_movement"] = self.show_movement_intvar.get()
         self.session.set("general_settings", new_settings)
-
-    def freeze(self):
-        recursive_freeze(self)
 
 class MutateFrame(Frame):
     def __init__(self, parent, session, mutate_func, advanced_frame):

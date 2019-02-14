@@ -1,5 +1,7 @@
+from Tkinter import *
+import ttk
 from common.styles import *
-from common.tools import *
+from common.tools import is_within
 from common.parameters import *
 from common.plotting import PlotWidget
 
