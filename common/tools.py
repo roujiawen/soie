@@ -29,3 +29,8 @@ def create_buttons(parent, button_dict):
         b.grid(row=attributes[1], column=attributes[2])
         buttons[name] = b
     return buttons
+
+def counts2slices(counts):
+    cumu = [sum(counts[:i]) for i in range(len(counts)+1)]
+    slices = [slice(cumu[i-1], cumu[i]) for i in range(1, len(cumu))]
+    return slices

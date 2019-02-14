@@ -1,9 +1,10 @@
-from common.styles import *
 from Tkinter import *
 from matplotlib.figure import Figure
 from matplotlib.collections import LineCollection
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from matplotlib.ticker import MaxNLocator
+from common.styles import *
+from common.tools import counts2slices
 
 class PlotWidget(object):
     """
@@ -43,25 +44,25 @@ class PlotWidget(object):
 
     def plot_sim(self, session, sim, dots):
         scale_factor, velocity_trace = session.sf, session.vt
-        new_graph_data = sim.state
+        x, y, dir_x, dir_y = sim.state
         species_velocity = sim.params["Velocity"]
-        coords, vlcty = new_graph_data
+        n_per_species = sim.n_per_species
         colors = CELL_COLORS
         self.clear()
-        s = dots/100. * 3.14 * (0.08 * scale_factor)**2
+        circle_size = dots/100. * 3.14 * (0.08 * scale_factor)**2
         multiplier = velocity_trace[0]
         alpha = velocity_trace[1]
-        for i, pair in enumerate(coords):
+
+        for k, s in enumerate(counts2slices(n_per_species)):
             if multiplier > 0:
                 segs = []
-                for j in range(len(pair[0])):
-                    x = pair[0][j]
-                    y = pair[1][j]
-                    segs.append(((x, y), (x-vlcty[i][0][j]*multiplier*species_velocity[i],
-                                          y-vlcty[i][1][j]*multiplier*species_velocity[i])))
-                ln_coll = LineCollection(segs, colors=colors[i], linewidths=1, alpha = alpha)
+                for j in range(s.start, s.stop):
+                    segs.append(((x[j], y[j]), (x[j]-dir_x[j]*multiplier*species_velocity[k],
+                                          y[j]-dir_y[j]*multiplier*species_velocity[k])))
+                ln_coll = LineCollection(segs, colors=colors[k], linewidths=1, alpha=alpha)
                 self.add_collection(ln_coll)
-            self.scatter(pair[0], pair[1], s=s, color=colors[i],linewidths=0, alpha=CELL_ALPHA[i])
+            self.scatter(x[s], y[s], s=circle_size, color=colors[k],linewidths=0, alpha=CELL_ALPHA[k])
+
         self.axis('off')
         adjusted_limit = AXIS_LIMIT / scale_factor
         self.set_axis_limits([0, adjusted_limit], [0, adjusted_limit])

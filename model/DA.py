@@ -1,6 +1,7 @@
 import numpy as np
 from math import pi, cos, sin, ceil, sqrt
 from collections import OrderedDict
+from common.tools import counts2slices
 
 if __name__ == "__main__":
     import c_code as c_model
@@ -10,11 +11,6 @@ else:
 CORE_RADIUS = 0.1
 FIELD_SIZE = 10.0
 N_GLOBAL_STATS = 5
-
-def counts2slices(counts):
-    cumu = [sum(counts[:i]) for i in range(len(counts)+1)]
-    slices = [slice(cumu[i-1], cumu[i]) for i in range(1, len(cumu))]
-    return slices
 
 class Model(object):
     def __init__(self, params, scale_factor=2., periodic_boundary=False):
@@ -155,6 +151,7 @@ class Model(object):
                     pos_y[type_] = temp_y
 
         self.x, self.y, self.dir_x, self.dir_y = pos_x, pos_y, dir_x, dir_y
+        self.state = [pos_x, pos_y, dir_x, dir_y]
 
     def fb_tick(self, steps):
         global_stats_slice = np.zeros(N_GLOBAL_STATS * steps)
@@ -168,6 +165,7 @@ class Model(object):
 
 
     def set(self, state, properties):
+        #TODO: rename to load_state_properties, load directly
         """
         coords, vlcty: [[[x],[y]],[blue], [green]]
         """
@@ -180,17 +178,10 @@ class Model(object):
         self.dir_x = np.concatenate([vlcty[i][0] for i in range(ntypes)])
         self.dir_y = np.concatenate([vlcty[i][1] for i in range(ntypes)])
 
-    def get(self):
-        n_per_species = self.internal_params["n_per_species"]
-        x, y, dir_x, dir_y = self.x, self.y, self.dir_x, self.dir_y
-        coords = []
-        vlcty = []
-        for i, slice_ in enumerate(counts2slices(n_per_species)):
-            coords.append([list(x[slice_]), list(y[slice_])])
-            vlcty.append([list(dir_x[slice_]), list(dir_y[slice_])])
-        return (coords, vlcty)
+        self.state = [self.x, self.y, self.dir_x, self.dir_y]
 
 def main():
+    #TODO: update this code
     import time
     import matplotlib.pyplot as plt
     start_time = time.time()

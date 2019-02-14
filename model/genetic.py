@@ -52,14 +52,6 @@ class Phenotype(object):
         if not prev:
             self.model.init_particles_state()
 
-    @property
-    def properties(self):
-        return self.model.global_stats
-
-    @property
-    def state(self):
-        return self.model.get()
-
     def add_steps(self, n):
         self.step += n
         self.run_model(n)
@@ -226,7 +218,7 @@ class Simulation(object):
 
     @property
     def state(self):
-        return self.phenotype.state
+        return self.phenotype.model.state
 
     @property
     def step(self):
@@ -234,7 +226,12 @@ class Simulation(object):
 
     @property
     def properties(self):
-        return self.phenotype.properties
+        #TODO: change all names properties --> global_stats
+        return self.phenotype.model.global_stats
+
+    @property
+    def n_per_species(self):
+        return self.phenotype.model.internal_params["n_per_species"]
 
     def bind(self, data_name, func, first=False):
         """Bind functions to data; if data changes, the binded functions are
