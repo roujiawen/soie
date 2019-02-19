@@ -166,7 +166,7 @@ class SimInfoFrame(Frame):
         self.session = session
         self.sim = sim
         sim.bind("params", self.update_params)
-        sim.bind("properties", self.update_properties)
+        sim.bind("global_stats", self.update_global_stats)
         sim.bind("step", self.update_step)
 
         self.default_steps_strvar = strvar
@@ -239,9 +239,9 @@ class SimInfoFrame(Frame):
         step = self.sim.step
         self.steps_strvar.set("Step = {}".format(step))
 
-    def update_properties(self):
-        #update properties
-        self.property_plot.plot_properties(self.session, self.sim)
+    def update_global_stats(self):
+        #update global_stats
+        self.property_plot.plot_global_stats(self.session, self.sim)
 
     def update_params(self):
         new_params = self.sim.params

@@ -164,14 +164,14 @@ class Model(object):
         self.global_stats = np.hstack([self.global_stats, global_stats_slice.reshape(N_GLOBAL_STATS, steps)])
 
 
-    def set(self, state, properties):
-        #TODO: rename to load_state_properties, load directly
+    def set(self, state, global_stats):
+        #TODO: rename to load_state_global_stats, load directly
         """
         coords, vlcty: [[[x],[y]],[blue], [green]]
         """
         ntypes = len(self.internal_params["n_per_species"])
         coords, vlcty = state
-        self.global_stats = properties
+        self.global_stats = global_stats
 
         self.x = np.concatenate([coords[i][0] for i in range(ntypes)])
         self.y = np.concatenate([coords[i][1] for i in range(ntypes)])
@@ -181,49 +181,166 @@ class Model(object):
         self.state = [self.x, self.y, self.dir_x, self.dir_y]
 
 def main():
-    #TODO: update this code
+    #TEST: python -m model.DA
     import time
     import matplotlib.pyplot as plt
-    start_time = time.time()
+    from matplotlib.collections import LineCollection
+    from common.tools import counts2slices
 
-    params = {'Gradient Intensity': [0., 0.0, 1.52],
-    'Cell Density': 0.5,
-    'Angular Inertia': 1.,
-    'Alignment Force': 0.,
-    'Pinned Cells': ['none', 'none', 'none'],
-    'Velocity': [0.085, 0.034, 0.086],
-    'Gradient Direction': [0.79, 0.47, 1.83],
-    'Alignment Range': 11.1,
-    'Adhesion': [[3.25, 1.1300000000000001, 1.15], [1.1300000000000001, 1.36, 4.0], [1.15, 4.0, 1.48]],
-    'Interaction Force': 5.,
-    'Cell Ratio': [1.0, 0., 0],
-    'Noise Intensity': 0.28,
-    'Interaction Range': 50.2}
+    def test_model(params, scale_factor, velocity_trace, periodic_boundary, steps):
+        start_time = time.time()
+        alpha = 0.8
+        m = Model(params, scale_factor=scale_factor, periodic_boundary=periodic_boundary)
+        m.init_particles_state()
 
-    sf = 1.0
-    m = Model(params, scale_factor=sf, periodic_boundary=True)
-    m.init_particles_state()
+        m.tick(steps)
 
-    m.tick(50)
+        print("--- %s seconds ---" % (time.time() - start_time))
 
-    print("--- %s seconds ---" % (time.time() - start_time))
+        x, y, dir_x, dir_y = m.state
+        species_velocity = m.user_params["Velocity"]
+        n_per_species = m.internal_params["n_per_species"]
+        colors = ["blue", "red", "green"]
 
-    coords, vlcty = m.get()
-    plt.figure()
-    colors = ["blue", "red", "green"]
-    multiplier = 10
-    for i, pair in enumerate(coords):
-        """for j in range(len(pair[0])):
-            x = pair[0][j]
-            y = pair[1][j]
-            plt.plot([x, x-vlcty[i][0][j]*multiplier],[y, y-vlcty[i][1][j]*multiplier], color ="grey")"""
-        plt.scatter(pair[0], pair[1], s=5, color=colors[i])
+        figsize = (5,5)
+        dpi = 100
+        fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
+        dots = (figsize[0]*dpi)**2
+        circle_size = dots/100. * 3.14 * (0.08 * scale_factor)**2
+        multiplier = velocity_trace
 
-    plt.xlim(0, 10./sf)
-    plt.ylim(0, 10./sf)
-    plt.show()
 
+        for k, s in enumerate(counts2slices(n_per_species)):
+            if multiplier > 0:
+                segs = []
+                for j in range(s.start, s.stop):
+                    segs.append(((x[j], y[j]), (x[j]-dir_x[j]*multiplier*species_velocity[k],
+                                          y[j]-dir_y[j]*multiplier*species_velocity[k])))
+                ln_coll = LineCollection(segs, colors=colors[k], linewidths=1, alpha=alpha)
+                ax.add_collection(ln_coll)
+            ax.scatter(x[s], y[s], s=circle_size, color=colors[k],linewidths=0, alpha=alpha)
+
+        adjusted_limit = 10. / scale_factor
+        plt.xlim([0, adjusted_limit])
+        plt.ylim([0, adjusted_limit])
+        plt.show()
+
+
+    #----------------------SVM----------------------
+    params = {
+        "Alignment Range": 10.0,
+        "Pinned Cells": [
+            "none",
+            "none",
+            "none"
+        ],
+        "Interaction Force": 0.0,
+        "Gradient Intensity": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Cell Ratio": [
+            1.0,
+            0.0,
+            0.0
+        ],
+        "Alignment Force": 1.0,
+        "Noise Intensity": 0.016,
+        "Angular Inertia": 0.01,
+        "Adhesion": [
+            [
+                0.01,
+                0.01,
+                0.01
+            ],
+            [
+                0.01,
+                0.01,
+                0.01
+            ],
+            [
+                0.01,
+                0.01,
+                0.01
+            ]
+        ],
+        "Gradient Direction": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Cell Density": 0.42,
+        "Velocity": [
+            0.03,
+            0.03,
+            0.03
+        ],
+        "Interaction Range": 10.0
+    }
+    scale_factor = 1.0
+    velocity_trace = 15.
+    periodic_boundary = True
+    steps = 100
+    test_model(params, scale_factor, velocity_trace, periodic_boundary, steps)
+
+    #----------------------SDA----------------------
+    params = {
+        "Alignment Range": 2.01,
+        "Alignment Force": 0.0,
+        "Interaction Force": 0.005,
+        "Gradient Intensity": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Cell Ratio": [
+            0.5,
+            0.5,
+            0.0
+        ],
+        "Pinned Cells": [
+            "none",
+            "none",
+            "none"
+        ],
+        "Noise Intensity": 0.3,
+        "Angular Inertia": 0.05,
+        "Adhesion": [
+            [
+                1.2,
+                1.4,
+                0.01
+            ],
+            [
+                1.4,
+                1.8,
+                0.01
+            ],
+            [
+                0.01,
+                0.01,
+                0.01
+            ]
+        ],
+        "Velocity": [
+            0.05,
+            0.05,
+            0.05
+        ],
+        "Cell Density": 0.07,
+        "Gradient Direction": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Interaction Range": 10.0
+        }
+    scale_factor = 0.5
+    velocity_trace = 0.
+    periodic_boundary = False
+    steps = 500
+    test_model(params, scale_factor, velocity_trace, periodic_boundary, steps)
 
 if __name__ == "__main__":
-    import sys
     main()

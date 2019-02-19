@@ -145,11 +145,9 @@ class App(Frame):
         #BOTTOMLEFT
         self.sims_frame = SimsFrame(self, session, sims, self.sim_info_frames, self.get_top_frame)
 
-        # Linking add_steps function #TODO: refactorize?
+        # Linking add_steps function
         for sim, gframe in zip(self.population.simulations, self.sims_frame.graphs):
-            # control: add_step
             gframe.info_frame.steps_widget.func = sim.add_steps
-
 
         #TOP
         self.buttons_frame = ButtonsFrame(self, session, new_pop_command=self.new_pop,

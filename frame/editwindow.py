@@ -487,7 +487,7 @@ class EditWindow(Frame):
         self.parent = parent
         self.session = session
         session.bind("vt", self.update_graph)
-        sim.bind("properties", self.update_properties, first=True)
+        sim.bind("global_stats", self.update_global_stats, first=True)
         sim.bind("state", self.update_graph, first=True)
         self.sim = sim
         master.wm_title("Edit Simulation")
@@ -508,7 +508,7 @@ class EditWindow(Frame):
 
         self.property_widget = PlotWidget(self, figsize=property_figsize, dpi=dpi)
         self.property_widget.large_plot()
-        self.update_properties()
+        self.update_global_stats()
         self.property_widget.large_legend()
 
 
@@ -522,13 +522,13 @@ class EditWindow(Frame):
     def update_graph(self):
         self.graph_widget.plot_sim(self.session, self.sim, self.dots)
 
-    def update_properties(self):
-        self.property_widget.plot_properties(self.session, self.sim)
+    def update_global_stats(self):
+        self.property_widget.plot_global_stats(self.session, self.sim)
 
     def close(self):
         self.session.unbind("vt", self.update_graph)
         self.sim.unbind("state", self.update_graph)
-        self.sim.unbind("properties", self.update_properties)
+        self.sim.unbind("global_stats", self.update_global_stats)
         self.edit_frame.unbind()
         self.master.destroy()
         self.parent.unfreeze()

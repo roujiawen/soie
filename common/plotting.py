@@ -68,8 +68,8 @@ class PlotWidget(object):
         self.set_axis_limits([0, adjusted_limit], [0, adjusted_limit])
         self.draw()
 
-    def plot_properties(self, session, sim):
-        properties = sim.properties
+    def plot_global_stats(self, session, sim):
+        global_stats = sim.global_stats
         self.clear()
 
         def process(values):
@@ -79,11 +79,11 @@ class PlotWidget(object):
                 x = x[-200:]
             return x, values
 
-        #self.plot(*process(properties[0,:]), linewidth = 0.5, color="darkslateblue", label="angular momentum")
-        #self.plot(*process(properties[1,:]), linewidth = 0.5, color="crimson", label="order")
-        self.plot(*process(properties[2,:]), linewidth = 0.5, color="darkslateblue", label="segragation1")
-        self.plot(*process(properties[3,:]), linewidth = 0.5, color="crimson", label="segragation2")
-        self.plot(*process(properties[4,:]), linewidth = 0.5, color="green", label="segragation3")
+        #self.plot(*process(global_stats[0,:]), linewidth = 0.5, color="darkslateblue", label="angular momentum")
+        #self.plot(*process(global_stats[1,:]), linewidth = 0.5, color="crimson", label="order")
+        self.plot(*process(global_stats[2,:]), linewidth = 0.5, color="darkslateblue", label="segragation1")
+        self.plot(*process(global_stats[3,:]), linewidth = 0.5, color="crimson", label="segragation2")
+        self.plot(*process(global_stats[4,:]), linewidth = 0.5, color="green", label="segragation3")
         self.small_legend()
         self.draw()
 

@@ -207,7 +207,7 @@ class Simulation(object):
         self.phenotype = None
         self.geno_generator = geno_generator
         self.session = session
-        self.bindings = {"params": [], "state": [], "properties":[], "step":[]}
+        self.bindings = {"params": [], "state": [], "global_stats":[], "step":[]}
 
     def __repr__(self):
         return self.id
@@ -225,8 +225,7 @@ class Simulation(object):
         return self.phenotype.step
 
     @property
-    def properties(self):
-        #TODO: change all names properties --> global_stats
+    def global_stats(self):
         return self.phenotype.model.global_stats
 
     @property
@@ -241,7 +240,7 @@ class Simulation(object):
         Parameters
         ----------
         data_name : str
-            {"params", "state", "properties", "step"}
+            {"params", "state", "global_stats", "step"}
         func : <function>
             Function to be binded to given data name
 
@@ -265,11 +264,11 @@ class Simulation(object):
         session = self.session
         sf, pb, vt = session.pheno_settings
         # params = session.models["params"][self]
-        # state, properties = session.models["state"][self], session.models["properties"][self]
+        # state, global_stats = session.models["state"][self], session.models["global_stats"][self]
         # step = session.models["step"][self]
         self.genotype = Genotype(params)
         self.phenotype = Phenotype(self.genotype, sf, pb, prev=True)
-        self.phenotype.model.set(state, properties)
+        self.phenotype.model.set(state, global_stats)
         self.phenotype.step = step
 
     def update_phenotype(self):
@@ -277,7 +276,7 @@ class Simulation(object):
         self.phenotype = Phenotype(self.genotype, sf, pb)
         self.call_bindings("state")
         self.call_bindings("step")
-        self.call_bindings("properties")
+        self.call_bindings("global_stats")
 
     def insert_new_genotype(self, new_genotype):
         # input: a Genotype object
@@ -313,7 +312,7 @@ class Simulation(object):
             self.phenotype.add_steps(step)
             self.call_bindings("state")
             self.call_bindings("step")
-        self.call_bindings("properties")
+        self.call_bindings("global_stats")
 
 class Population(object):
     def __init__(self, session):
@@ -408,7 +407,7 @@ class Population(object):
                     self.simulations[i].call_bindings("step")
 
         for each in self.simulations:
-            each.call_bindings("properties")
+            each.call_bindings("global_stats")
 
 
 if __name__ == "__main__":
