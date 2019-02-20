@@ -1,4 +1,6 @@
+import os
 from Tkinter import *
+import tkFileDialog
 from menu.range import RangeSettingsWindow
 from menu.general import GeneralSettingsWindow
 from menu.library import LibraryWindow
@@ -11,35 +13,41 @@ class MenuBar(Menu):
         self.session = session
         session.bind("general_settings", self.update_general_options)
         session.bind("param_info", self.update_range_options)
-        options = ["Save All to Library",
-        "Clear Library",
-        ##########
-        "Show Velocity Trace",
-        "Every 1 Step",
-        "Every 5 Step",
-        "Every 10 Step",
-        "Turn Off",
-        "Zoom 0.5x",
-        "Zoom 1.0x",
-        "Zoom 2.0x",
-        "Periodic Boundary",
-        ##########
-        "Interaction Force Only",
-        "Alignment Force Only",
-        "Enable Both Forces",
-        "Allow Gradient",
-        "Allow Pinned Cells",
-        "Single Cell Type",
-        "Two Cell Types",
-        "Three Cell Types",
-        "Restore Default Settings"]
+        options = [
+            "Save Current Session",
+            "Save All Genes to Library",
+            "Clear Library",
+            ##########
+            "Show Velocity Trace",
+            "Every 1 Step",
+            "Every 5 Step",
+            "Every 10 Step",
+            "Turn Off",
+            "Zoom 0.5x",
+            "Zoom 1.0x",
+            "Zoom 2.0x",
+            "Periodic Boundary",
+            ##########
+            "Interaction Force Only",
+            "Alignment Force Only",
+            "Enable Both Forces",
+            "Allow Gradient",
+            "Allow Pinned Cells",
+            "Single Cell Type",
+            "Two Cell Types",
+            "Three Cell Types",
+            "Restore Default Settings"
+        ]
         options = [options[i/2] for i in range(len(options)*2-1,-1,-1)]
         menu = Menu(self, tearoff=0)
-        self.add_cascade(label="Library", menu=menu)
-        menu.add_command(label="Open Gene...", command=self.open_library)
+        self.add_cascade(label="File", menu=menu)
+        menu.add_command(label="Open Session...", command=self.open_session)
+        menu.add_command(label="Open Gene from Library...", command=self.open_library)
         menu.add_separator()
         for i in range(2):
             menu.add_command(label=options.pop(), command=menu_bar_commands[options.pop()])
+        menu.add_separator()
+        menu.add_command(label=options.pop(), command=menu_bar_commands[options.pop()])
 
         ##################GENERAL SETTINGS#######################
         ints = self.general_intvars = {name:IntVar() for name in
@@ -118,6 +126,14 @@ class MenuBar(Menu):
         t = Toplevel(self.parent)
         self.library_window = LibraryWindow(self.parent, t, self.parent.insert_lib)
         self.library_window.grid(padx=10, pady=5)
+
+    def open_session(self):
+        input_file_name = tkFileDialog.askopenfilename(
+            filetypes=[("JSON", "json")],
+            initialdir=os.path.join(os.path.dirname(os.path.dirname(__file__)),'sessions')
+            )
+        if input_file_name != "":
+            self.parent.load_session(input_file_name)
 
     def open_general_settings(self):
         t = Toplevel(self.parent)

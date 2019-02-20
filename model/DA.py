@@ -29,6 +29,10 @@ class Model(object):
         self.periodic_boundary = periodic_boundary
 
     @property
+    def state(self):
+        return self.x, self.y, self.dir_x, self.dir_y
+
+    @property
     def order_parameters(self):
         return list(self.global_stats[1,:])
 
@@ -151,7 +155,6 @@ class Model(object):
                     pos_y[type_] = temp_y
 
         self.x, self.y, self.dir_x, self.dir_y = pos_x, pos_y, dir_x, dir_y
-        self.state = [pos_x, pos_y, dir_x, dir_y]
 
     def fb_tick(self, steps):
         global_stats_slice = np.zeros(N_GLOBAL_STATS * steps)
@@ -165,20 +168,8 @@ class Model(object):
 
 
     def set(self, state, global_stats):
-        #TODO: rename to load_state_global_stats, load directly
-        """
-        coords, vlcty: [[[x],[y]],[blue], [green]]
-        """
-        ntypes = len(self.internal_params["n_per_species"])
-        coords, vlcty = state
-        self.global_stats = global_stats
-
-        self.x = np.concatenate([coords[i][0] for i in range(ntypes)])
-        self.y = np.concatenate([coords[i][1] for i in range(ntypes)])
-        self.dir_x = np.concatenate([vlcty[i][0] for i in range(ntypes)])
-        self.dir_y = np.concatenate([vlcty[i][1] for i in range(ntypes)])
-
-        self.state = [self.x, self.y, self.dir_x, self.dir_y]
+        self.global_stats = np.array(global_stats)
+        self.x, self.y, self.dir_x, self.dir_y = [np.array(_) for _ in state]
 
 def main():
     #TEST: python -m model.DA

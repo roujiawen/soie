@@ -259,17 +259,16 @@ class Simulation(object):
         for each_func in self.bindings[data_name]:
             each_func()
 
-    def load_prev_session(self):
-        #TODO fix
+    def load_prev_session(self, data):
         session = self.session
         sf, pb, vt = session.pheno_settings
-        # params = session.models["params"][self]
-        # state, global_stats = session.models["state"][self], session.models["global_stats"][self]
-        # step = session.models["step"][self]
-        self.genotype = Genotype(params)
+        self.genotype = Genotype(data["params"])
         self.phenotype = Phenotype(self.genotype, sf, pb, prev=True)
-        self.phenotype.model.set(state, global_stats)
-        self.phenotype.step = step
+        self.phenotype.model.set(data["state"], data["global_stats"])
+        self.phenotype.step = data["step"]
+        # Update
+        for each_data_name in data.keys():
+            self.call_bindings(each_data_name)
 
     def update_phenotype(self):
         sf, pb, vt = self.session.pheno_settings
@@ -324,9 +323,10 @@ class Population(object):
                             for _ in range(9)]
 
 
-    def load_prev_session(self):
-        for each in self.simulations:
-            each.load_prev_session()
+    def load_prev_session(self, model_data):
+        self.sf, self.pb, self.vt = self.session.pheno_settings
+        for data, sim in zip(model_data, self.simulations):
+            sim.load_prev_session(data)
 
     def update_phenotype(self):
         """

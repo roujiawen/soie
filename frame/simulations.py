@@ -42,7 +42,7 @@ class GraphFrame(Frame):
         self.popup_menu.add_command(label="Copy", command=self.copy, accelerator='Command-C')
         self.popup_menu.add_command(label="Paste", command=self.paste, accelerator='Command-V')
         self.popup_menu.add_separator()
-        self.popup_menu.add_command(label="Save to Library", command=self.click_and_save, accelerator='Command-S')
+        self.popup_menu.add_command(label="Add to Library", command=self.click_and_save, accelerator='Command-S')
 
         self.bind("<Button-2>", self.popup)
         #self.freeze()

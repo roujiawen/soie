@@ -1,10 +1,14 @@
 from Tkinter import *
 import ttk
+import tkMessageBox
+import tkFileDialog
 import os
+import datetime
 from copy import copy, deepcopy
 from common.styles import *
+from common.parameters import GENERAL_SETTINGS, ADVANCED_MUTATE
 from common.tools import is_within
-from common.io_utils import delete_all_genes
+from common.io_utils import delete_all_genes, save_session_data, load_session_data
 from frame.top import ButtonsFrame, MutateFrame, CrossFrame, InsertLibFrame
 from frame.siminfo import SimInfoFrame
 from frame.advancedmutate import AdvancedMutateFrame
@@ -46,9 +50,6 @@ class SessionData(object):
     def unbind(self, attr, func):
         self.bindings[attr].remove(func)
 
-    def bind_first(self, attr, func):
-        self.bindings[attr].insert(0,func)
-
     def bind(self, attr, func):
         self.bindings[attr].append(func)
 
@@ -64,17 +65,6 @@ class SessionData(object):
         if len(args) == 1:
             setattr(self, attr, args[0])
             self.update(attr)
-
-        #self.write()
-
-    def write(self):
-        #TODO: fix writing record
-        # combined = {"models":self.models,
-        # "general_settings":self.general_settings,
-        # "param_info":self.param_info,
-        # "advanced_mutate":self.advanced_mutate}
-        with open(RECORD_PATH, "w") as f:
-           f.write("inf=float('inf')\nRECORD_DATA="+str(combined))
 
     @property
     def movement(self):
@@ -118,19 +108,9 @@ class App(Frame):
 
         session = SessionData()
         self.session = session
-
-        flag=False
-        # Read record data
-        if os.path.exists(RECORD_PATH):
-            from customdata.record import RECORD_DATA
-            for each in ["param_info","general_settings", "advanced_mutate"]:
-                setattr(session, each, RECORD_DATA[each])
-            flag=True
-        else:
-            from common.parameters import GENERAL_SETTINGS, ADVANCED_MUTATE
-            session.param_info = deepcopy(PARAM_INFO)
-            session.general_settings = deepcopy(GENERAL_SETTINGS)
-            session.advanced_mutate = ADVANCED_MUTATE
+        session.param_info = deepcopy(PARAM_INFO)
+        session.general_settings = deepcopy(GENERAL_SETTINGS)
+        session.advanced_mutate = ADVANCED_MUTATE
 
         #Population
         self.population = Population(session)
@@ -162,23 +142,63 @@ class App(Frame):
         self.top_frames = [self.mutate_frame, self.cross_frame, self.insert_lib_frame]
         self.current_top_frame = self.buttons_frame
 
-        #TODO: fix loading prev session
-        # try:
-        #     if flag==True:
-        #         for subattr, model_info in RECORD_DATA["models"].items():
-        #             for sim, i in zip(sims, range(9)):
-        #                 session.set("models", subattr, sim, model_info[i])
-        #         self.population.load_prev_session()
-        # except:
-        #     print "ERROR when restoring previous session"
+
 
         # menu bar
+        def save_current_session():
+            """Save session data including general_settings, param_info,
+            advanced_mutate and model_data.
+
+            model_data = [
+                {"params": sim1.params,
+                 "state": sim1.state,
+                 "global_stats": sim1.global_stats,
+                 "step": sim1.step},
+
+                {"params": sim2.params,
+                 "state": sim2.state,
+                 "global_stats": sim2.global_stats,
+                 "step": sim2.step},
+
+                ...... x 9
+            ]
+            """
+            model_data = [
+                {
+                    "params": each_sim.params,
+                    "state": [_.tolist() for _ in each_sim.state],
+                    "global_stats": each_sim.global_stats.tolist(),
+                    "step": each_sim.step
+                }
+                for each_sim in sims
+            ]
+
+            output_file_name = tkFileDialog.asksaveasfilename(
+                filetypes=[("JSON", "json")],
+                initialdir=os.path.join(os.path.dirname(__file__),'sessions'),
+                initialfile=datetime.datetime.now().strftime("Session_%m-%d-%Y_at_%I.%M%p")
+            )
+
+            if output_file_name != "":
+                save_session_data(
+                    output_file_name,
+                    {
+                        "general_settings":session.general_settings,
+                        "param_info":session.param_info,
+                        "advanced_mutate":session.advanced_mutate,
+                        "model_data":model_data
+                    }
+                )
+
+                tkMessageBox.showinfo("", "Current session has been saved!")
+
         def set_general(which, value):
             def func():
                 new_settings = self.session.general_settings
                 new_settings[which] = value
                 self.update_general_settings(new_settings)
             return func
+
         def set_double(which, affect, value):
             def func():
                 new_settings = self.session.general_settings
@@ -235,7 +255,8 @@ class App(Frame):
             self.update_range_settings(param_info)
 
         menu_bar_commands = {
-        "Save All to Library": self.sims_frame.save_all,
+        "Save Current Session": save_current_session,
+        "Save All Genes to Library": self.sims_frame.save_all,
         "Clear Library": delete_all_genes,
         ##############
         "Show Velocity Trace": toggle_general("show_tail"),
@@ -260,8 +281,9 @@ class App(Frame):
         }
         self.menu_bar = MenuBar(self, session, master, menu_bar_commands)
 
-        for each in ["param_info","general_settings", "advanced_mutate"]:
-            session.update(each)
+        #TODO: is this necessary
+        # for each in ["param_info","general_settings", "advanced_mutate"]:
+        #     session.update(each)
 
         for each in self.top_frames:
             each.grid(row=0, column=0, sticky="we")
@@ -356,6 +378,17 @@ class App(Frame):
             else:
                 param_info[name]["range"] = recursive_fit(chosen_gene[name], param_info[name]["range"])
         self.update_range_settings(param_info)
+
+    def load_session(self, input_file_name):
+        #TODO: `setattr` not reactive?
+        session_data = load_session_data(input_file_name)
+        for each in ["param_info","general_settings", "advanced_mutate"]:
+            setattr(self.session, each, session_data[each])
+        self.population.load_prev_session(session_data["model_data"])
+        for each in ["param_info","general_settings", "advanced_mutate"]:
+            self.session.update(each)
+
+
 
 root = Tk()
 app = App(root)
