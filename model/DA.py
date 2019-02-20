@@ -10,7 +10,7 @@ else:
 
 CORE_RADIUS = 0.1
 FIELD_SIZE = 10.0
-N_GLOBAL_STATS = 5
+N_GLOBAL_STATS = 6
 
 class Model(object):
     def __init__(self, params, scale_factor=2., periodic_boundary=False):

@@ -79,11 +79,12 @@ class PlotWidget(object):
                 x = x[-200:]
             return x, values
 
-        #self.plot(*process(global_stats[0,:]), linewidth = 0.5, color="darkslateblue", label="angular momentum")
-        #self.plot(*process(global_stats[1,:]), linewidth = 0.5, color="crimson", label="order")
-        self.plot(*process(global_stats[2,:]), linewidth = 0.5, color="darkslateblue", label="segragation1")
-        self.plot(*process(global_stats[3,:]), linewidth = 0.5, color="crimson", label="segragation2")
-        self.plot(*process(global_stats[4,:]), linewidth = 0.5, color="green", label="segragation3")
+        self.plot(*process(global_stats[0,:]), linewidth = 0.5, color="orange", label="angular momentum")
+        self.plot(*process(global_stats[1,:]), linewidth = 0.5, color="brown", label="alignment")
+        self.plot(*process(global_stats[2,:]), linewidth = 0.5, color="darkslateblue", label="segragation-b")
+        self.plot(*process(global_stats[3,:]), linewidth = 0.5, color="crimson", label="segragation-r")
+        self.plot(*process(global_stats[4,:]), linewidth = 0.5, color="green", label="segragation-g")
+        self.plot(*process(global_stats[5,:]), linewidth = 0.5, color="purple", label="clustering")
         self.small_legend()
         self.draw()
 

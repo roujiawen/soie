@@ -140,23 +140,6 @@ class InteractionParamWidget(Frame):
             for j, each in enumerate(each_row):
                 self.strvars[i][j].set(str(each))
 
-"""class PropertyPlotWidget(Frame):
-    def __init__(self, parent, width=2.5, height=1, dpi=100):
-        Frame.__init__(self, parent, bg=parent.cget("bg"))
-        self.plot_widget = PlotWidget(self, figsize=(width, height), dpi=dpi, bg=self.cget("bg"))
-        self.plot_widget.small_plot()
-        self.plot_widget.plot([0.1,100],[-1,1],color="red", label="asdadass")
-        self.plot_widget.plot([0.1,width-0.1,width-9.1],[0.1,height-0.1,0.1],color="blue")
-        self.plot_widget.small_legend()
-        self.plot_widget.grid()
-
-    def plot(self, *args, **kwargs):
-        self.plot_widget.plot(*args, **kwargs)
-    def legend(self):
-        self.plot_widget.small_legend()
-    def show(self):
-        self.plot_widget.show()"""
-
 class SimInfoFrame(Frame):
     def __init__(self, parent, session, sim, strvar, figsize=(2.5, 1), dpi=100):
         Frame.__init__(self, parent, background=SIM_INFO_FRAME_COLOR,

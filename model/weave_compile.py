@@ -18,7 +18,7 @@ def weave_compile():
         'Attraction-Repulsion Range': 10.2}
 
     steps = 1
-    N_GLOBAL_STATS = 5
+    N_GLOBAL_STATS = 6
     global_stats = np.zeros(N_GLOBAL_STATS * steps)
 
 
@@ -76,7 +76,8 @@ def weave_compile():
     int i, j, k, k2, start_index, end_index, start_index2, end_index2, ith_step;
     double grad_i_x, grad_i_y, align_i_x, align_i_y, f_i_x, f_i_y;
     double beta_ij, ar_slope, ar_interc, r, temp, noise, c, s, v0_i;
-    double stat_align_x, stat_align_y, cm_x, cm_y, rel_pos_x, rel_pos_y, stat_angular, stat_seg;
+    double stat_align_x, stat_align_y, cm_x, cm_y, rel_pos_x, rel_pos_y;
+    double stat_angular, stat_seg, stat_clu;
     int ingroup_nb, total_nb;
 
     for (ith_step = 0; ith_step < steps; ith_step++) {
@@ -84,6 +85,7 @@ def weave_compile():
         stat_align_y = 0;
         cm_x = 0;
         cm_y = 0;
+        stat_clu = 0;
 
         // UPDATE DIRECTION
         start_index = 0;
@@ -136,6 +138,7 @@ def weave_compile():
                         ingroup_nb += 1;
                       }
                       total_nb += 1;
+
                       if (r < r0_x_2) {
                         // Infinite repulsion
                         f_i_x += -10000 * (pos_x[j] - pos_x[i]);
@@ -186,6 +189,45 @@ def weave_compile():
               if (total_nb > 0) {
                 stat_seg += ingroup_nb / (double) total_nb;
               }
+
+              // STAT_CLU
+              stat_clu += total_nb;
+            }
+          } else {
+            // If cell is pinned, calculate statistics but not forces###################
+            for (i = start_index; i < end_index; i++) {
+              // STAT_SEG
+              ingroup_nb = 0;
+              total_nb = 0;
+
+              start_index2 = 0;
+              for (k2 = 0; k2 < 3; k2++) {
+                end_index2 = start_index2 + n_per_species[k2];
+
+                for (j = start_index2; j < end_index2; j++) {
+                  if (i != j) {
+                    r = fb_dist(pos_x[i], pos_y[i], pos_x[j], pos_y[j]);
+
+                    // ATTRACTION-REPULSION
+                    if (r <= r1) {
+                      // STAT_SEG
+                      if (k == k2) {
+                        ingroup_nb += 1;
+                      }
+                      total_nb += 1;
+                    }
+                  }
+                }
+              start_index2 = end_index2;
+              }
+
+              // STAT_SEG
+              if (total_nb > 0) {
+                stat_seg += ingroup_nb / (double) total_nb;
+              }
+
+              // STAT_CLU
+              stat_clu += total_nb;
             }
           }
 
@@ -239,7 +281,10 @@ def weave_compile():
 
           // ORDER PARAMETER (1*steps+ith_step)
           global_stats[steps + ith_step] = sqrt(pow(stat_align_x, 2) + pow(stat_align_y, 2)) / eff_nop;
-
+        }
+        if (n > 0) {
+          // CLUSTERING PARAMETER (5*steps+ith_step)
+          global_stats[5*steps + ith_step] = (stat_clu/(n*M_PI*r1*r1/(size_x*size_y)))/n;
         }
     }
     """
@@ -273,8 +318,10 @@ def weave_compile():
     int i, j, k, k2, start_index, end_index, start_index2, end_index2, ith_step;
     double grad_i_x, grad_i_y, align_i_x, align_i_y, f_i_x, f_i_y;
     double beta_ij, ar_slope, ar_interc, r, temp, noise, c, s, v0_i, dis_x, dis_y;
-    double stat_align_x, stat_align_y, cm_x, cm_y, rel_pos_x, rel_pos_y, stat_angular;
+    double stat_align_x, stat_align_y, cm_x, cm_y, rel_pos_x, rel_pos_y;
     double sum_c_theta_x, sum_s_theta_x, sum_c_theta_y, sum_s_theta_y;
+    double stat_angular, stat_seg, stat_clu;
+    int ingroup_nb, total_nb;
 
     for (ith_step = 0; ith_step < steps; ith_step++) {
         stat_align_x = 0;
@@ -283,11 +330,13 @@ def weave_compile():
         sum_s_theta_x = 0;
         sum_c_theta_y = 0;
         sum_s_theta_y = 0;
+        stat_clu = 0;
 
         // UPDATE DIRECTION
         start_index = 0;
         for (k = 0; k < 3; k++) {
           end_index = start_index + n_per_species[k];
+          stat_seg = 0;
 
           if (pinned[k] == 0) {
             // Only if i is not pinned
@@ -304,6 +353,9 @@ def weave_compile():
               // A-R term
               f_i_x = 0;
               f_i_y = 0;
+              // STAT_SEG
+              ingroup_nb = 0;
+              total_nb = 0;
 
               start_index2 = 0;
               for (k2 = 0; k2 < 3; k2++) {
@@ -329,6 +381,12 @@ def weave_compile():
                     }
                     // ATTRACTION-REPULSION
                     if (r <= r1) {
+                      // STAT_SEG
+                      if (k == k2) {
+                        ingroup_nb += 1;
+                      }
+                      total_nb += 1;
+
                       if (r < r0_x_2) {
                         // Infinite repulsion
                         f_i_x += -10000 * dis_x;
@@ -372,8 +430,61 @@ def weave_compile():
               //STAT_ALIGN
               stat_align_x += dir_x[i];
               stat_align_y += dir_y[i];
+
+              // STAT_SEG
+              if (total_nb > 0) {
+                stat_seg += ingroup_nb / (double) total_nb;
+              }
+
+              // STAT_CLU
+              stat_clu += total_nb;
+            }
+          } else {
+            // If cell is pinned, calculate statistics but not forces###################
+            for (i = start_index; i < end_index; i++) {
+              // STAT_SEG
+              ingroup_nb = 0;
+              total_nb = 0;
+
+              start_index2 = 0;
+              for (k2 = 0; k2 < 3; k2++) {
+                end_index2 = start_index2 + n_per_species[k2];
+
+                for (j = start_index2; j < end_index2; j++) {
+                  if (i != j) {
+                    dis_x = pb_dist(pos_x[i], pos_x[j], size_x);
+                    dis_y = pb_dist(pos_y[i], pos_y[j], size_y);
+                    r = sqrt(pow(dis_x,2)+pow(dis_y,2));
+
+                    // ATTRACTION-REPULSION
+                    if (r <= r1) {
+                      // STAT_SEG
+                      if (k == k2) {
+                        ingroup_nb += 1;
+                      }
+                      total_nb += 1;
+                    }
+                  }
+                }
+              start_index2 = end_index2;
+              }
+
+              // STAT_SEG
+              if (total_nb > 0) {
+                stat_seg += ingroup_nb / (double) total_nb;
+              }
+
+              // STAT_CLU
+              stat_clu += total_nb;
             }
           }
+
+          // SEGREGATION PARAMETER (2,3,4*steps+ith_step)
+          if (n_per_species[k] > 0) {
+            stat_seg /= (double) n_per_species[k];
+          }
+          global_stats[(2+k) * steps + ith_step] = stat_seg;
+
           start_index = end_index;
         }
 
@@ -429,7 +540,10 @@ def weave_compile():
 
           // ORDER PARAMETER (1*steps+ith_step)
           global_stats[steps + ith_step] = sqrt(pow(stat_align_x, 2) + pow(stat_align_y, 2)) / eff_nop;
-
+        }
+        if (n > 0) {
+          // CLUSTERING PARAMETER (5*steps+ith_step)
+          global_stats[5*steps + ith_step] = (stat_clu/(n*M_PI*r1*r1/(size_x*size_y)))/n;
         }
     }
     """
