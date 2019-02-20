@@ -32,18 +32,6 @@ class Model(object):
     def state(self):
         return self.x, self.y, self.dir_x, self.dir_y
 
-    @property
-    def order_parameters(self):
-        return list(self.global_stats[1,:])
-
-    @property
-    def group_angular_momentum(self):
-        return list(self.global_stats[0,:])
-
-    @property
-    def segregation_parameters(self):
-        return [list(self.global_stats[2+i,:]) for i in range(3)]
-
     def gen_internal_params(self, scale_factor):
         """
         Formatting user-provided parameters into internal parameters accepted
