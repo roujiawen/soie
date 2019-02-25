@@ -70,6 +70,7 @@ class PlotWidget(object):
 
     def plot_global_stats(self, session, sim):
         global_stats = sim.global_stats
+        display_setting = session.global_stats_display
         self.clear()
 
         def process(values):
@@ -79,17 +80,18 @@ class PlotWidget(object):
                 x = x[-200:]
             return x, values
 
-        self.plot(*process(global_stats[0,:]), linewidth = 0.5, color="orange", label="angular momentum")
-        self.plot(*process(global_stats[1,:]), linewidth = 0.5, color="brown", label="alignment")
-        self.plot(*process(global_stats[2,:]), linewidth = 0.5, color="darkslateblue", label="segragation-b")
-        self.plot(*process(global_stats[3,:]), linewidth = 0.5, color="crimson", label="segragation-r")
-        self.plot(*process(global_stats[4,:]), linewidth = 0.5, color="green", label="segragation-g")
-        self.plot(*process(global_stats[5,:]), linewidth = 0.5, color="purple", label="clustering")
-        self.small_legend()
+        linewidth = 1
+        colors = ["orange","grey","blue","red","green","purple"]
+        labels = ["angmomen","align","segreg-b","segreg-r","segreg-g","cluster"]
+        for i, color, label in zip(range(6), colors, labels):
+            if display_setting["show"][i] == 1:
+                self.plot(*process(global_stats[i,:]), linewidth=linewidth,
+                            color=color, label=label)
+        self.legend()
         self.draw()
 
     def small_plot(self):
-        self.figure.subplots_adjust(left=0.1, bottom=0.15, right=0.98, top=0.85)
+        self.figure.subplots_adjust(left=0.1, bottom=0.12, right=0.98, top=0.78)
         self.ax.set_ylim([-1.,1])
         self.ax.set_xlim([0,100])
         self.ax.spines['top'].set_visible(False)
@@ -102,7 +104,7 @@ class PlotWidget(object):
 
     def large_plot(self):
         self.figure.patch.set_facecolor("white")
-        self.figure.subplots_adjust(left=0.1, bottom=0.15, right=0.98, top=0.85)
+        self.figure.subplots_adjust(left=0.1, bottom=0.15, right=0.98, top=0.80)
         self.ax.set_ylim([-1.,1])
         self.ax.set_xlim([0,100])
         ax = self.ax
@@ -110,15 +112,11 @@ class PlotWidget(object):
         ax.spines['right'].set_visible(True)
         ax.spines['bottom'].set_visible(True)
         ax.spines['left'].set_visible(True)
-        ax.tick_params(axis='both', which='major', length=2, labelsize=8)
+        ax.tick_params(axis='both', which='major', length=2, labelsize=6)
 
-    def small_legend(self):
-        self.ax.legend(bbox_to_anchor=(0., 1.01, 1., .102), loc=3,
-            ncol=2, mode="expand", borderaxespad=0., fontsize=6, frameon=False)
-
-    def large_legend(self):
-        self.ax.legend(bbox_to_anchor=(0., 1.01, 1., .102), loc=3,
-            ncol=2, mode="expand", borderaxespad=0., fontsize=8, frameon=False)
+    def legend(self):
+        self.ax.legend(bbox_to_anchor=(0., 1.01, 1., .3), loc=3,
+            ncol=3, mode="expand", borderaxespad=0., fontsize=6, frameon=False)
 
     def bind(self, *args, **kwargs):
         self.widget.bind(*args, **kwargs)

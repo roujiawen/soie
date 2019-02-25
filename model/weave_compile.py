@@ -162,8 +162,8 @@ def weave_compile():
               dir_y[i] *= iner_coef;
 
               // ADD OTHER TERMS
-              dir_x[i] += grad_i_x + align_i_x + f_i_x;
-              dir_y[i] += grad_i_y + align_i_y + f_i_y;
+              dir_x[i] += grad_i_x + align_i_x*fa + f_i_x;
+              dir_y[i] += grad_i_y + align_i_y*fa + f_i_y;
 
               // NORMALIZE (ARG)
               temp = sqrt(pow(dir_x[i], 2) + pow(dir_y[i], 2));
@@ -408,8 +408,8 @@ def weave_compile():
               dir_y[i] *= iner_coef;
 
               // ADD OTHER TERMS
-              dir_x[i] += grad_i_x + align_i_x + f_i_x;
-              dir_y[i] += grad_i_y + align_i_y + f_i_y;
+              dir_x[i] += grad_i_x + align_i_x*fa + f_i_x;
+              dir_y[i] += grad_i_y + align_i_y*fa + f_i_y;
 
               // NORMALIZE (ARG)
               temp = sqrt(pow(dir_x[i], 2) + pow(dir_y[i], 2));

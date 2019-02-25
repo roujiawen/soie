@@ -75,7 +75,7 @@ class Model(object):
                 in zip(uprm["Gradient Direction"], uprm["Gradient Intensity"])])
 
         # Effective number of particles (excluding pinned)
-        eff_nop = float(np.sum([[i] for i in range(len(n_per_species)) if pinned[i] == 0]))
+        eff_nop = float(np.sum([n_per_species[i] for i in range(len(n_per_species)) if pinned[i] == 0]))
 
         names = [
             'nop', 'eff_nop', 'xlim', 'ylim',

@@ -1,6 +1,7 @@
 import numpy as np
 from copy import deepcopy
 from model.DA import Model
+from common.parameters import GLOBAL_STATS_NAMES_INV
 import concurrent.futures
 import copy_reg
 import types
@@ -183,16 +184,15 @@ class GenoGenerator(object):
             children.append(Genotype(parameters))
         return children
 
-    def mutate(self, parent, rate=0.15, num=8):
+    def mutate(self, parent, num=8):
         not_locked = mutate_info = self.session.advanced_mutate
         rate = mutate_info["rate"]
         children = []
         for i in range(num):
-            rand = np.random.random()
             parameters = {
                 name:
                 (generator(self.ranges[name])
-                if (rand < rate) and (not_locked[name])
+                if (np.random.random() < rate) and (not_locked[name])
                 else self.choose(parent, name))
                 for name, generator in self.param_gen.items()
             }
@@ -345,7 +345,7 @@ class Population(object):
         if rerun_model:
             for each in self.simulations:
                 each.update_phenotype()
-            #self.add_steps_all(DEFAULT_STEPS)
+            self.add_steps_all(DEFAULT_STEPS)
         else:
             if trace_changed:
                 self.session.set("vt")
@@ -373,7 +373,8 @@ class Population(object):
             if each != chosen_sim:
                 each.insert_new_genotype(children.pop())
 
-        self.add_steps_all(DEFAULT_STEPS)
+        self.add_steps_all(DEFAULT_STEPS, sims=[each for each in self.simulations
+                                                if each != chosen_sim])
 
     def crossover(self, chosen_sims):
         parents = [_.genotype for _ in chosen_sims]
@@ -383,13 +384,54 @@ class Population(object):
             if each not in chosen_sims:
                 each.insert_new_genotype(children.pop())
 
-        self.add_steps_all(DEFAULT_STEPS)
+        self.add_steps_all(DEFAULT_STEPS, sims=[each for each in self.simulations
+                                                if each not in chosen_sims])
+
+    def mutate_with_restart(self, chosen_sim, target_steps):
+        """Change eight simulations into the children of one chosen simulation
+        through parameter mutation.
+        """
+
+        #take one simulation
+        #generate eight new instances of genotypes
+        children = self.geno_generator.mutate(chosen_sim.genotype)
+
+        #put them into simulations
+        for each in self.simulations:
+            if each != chosen_sim:
+                each.insert_new_genotype(children.pop())
+
+        chosen_sim.restart()
+        self.add_steps_all(target_steps)
+
+    def evolve_by_property(self, which_prop, num_gen, equi_range, eps):
+        start_step, end_step = equi_range
+        prop_index = GLOBAL_STATS_NAMES_INV[which_prop]
+
+        # Prepare for initial step
+        self.add_steps_all_till(end_step)
+
+        # For each generation
+        for each_gen in range(num_gen):
+            if np.random.random() < eps:
+                # For small probability, choose random survivor
+                parent = np.random.choice(self.simulations)
+            else:
+                # Otherwise, survival of the fittest
+                fitnesses = [np.abs(each_sim.global_stats[prop_index,start_step:end_step]).mean()
+                        for each_sim in self.simulations]
+                parent = self.simulations[np.argmax(fitnesses)]
+            print "parent:", parent.id, "fitness:", np.max(fitnesses)
+            self.mutate_with_restart(parent, end_step)
 
     def insert_from_lib(self, param, chosen_sims):
         for each in chosen_sims:
             each.insert_new_param(param)
 
-    def add_steps_all(self, n):
+    def add_steps_all(self, n, sims=None):
+        if sims is None:
+            sims = self.simulations
+
         movement = self.session.movement
         if movement is False:
             intervals = [n]
@@ -399,14 +441,26 @@ class Population(object):
                 intervals.append(n % movement)
 
         for step in intervals:
-            args = [[sim.phenotype, step, i] for i, sim in enumerate(self.simulations)]
+            args = [[sim.phenotype, step, i] for i, sim in enumerate(sims)]
             with concurrent.futures.ProcessPoolExecutor() as executor:
                 for p, i in executor.map(ticks, args):
-                    self.simulations[i].phenotype = p
-                    self.simulations[i].call_bindings("state")
-                    self.simulations[i].call_bindings("step")
+                    sims[i].phenotype = p
+                    sims[i].call_bindings("state")
+                    sims[i].call_bindings("step")
 
-        for each in self.simulations:
+        for each in sims:
+            each.call_bindings("global_stats")
+
+    def add_steps_all_till(self, target_step):
+        sims = self.simulations
+        args = [[sim.phenotype, max(0, target_step - sim.step), i] for i, sim in enumerate(sims)]
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            for p, i in executor.map(ticks, args):
+                sims[i].phenotype = p
+                sims[i].call_bindings("state")
+                sims[i].call_bindings("step")
+
+        for each in sims:
             each.call_bindings("global_stats")
 
 

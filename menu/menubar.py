@@ -4,6 +4,7 @@ import tkFileDialog
 from menu.range import RangeSettingsWindow
 from menu.general import GeneralSettingsWindow
 from menu.library import LibraryWindow
+from common.parameters import GLOBAL_STATS_NAMES
 from copy import deepcopy
 
 class MenuBar(Menu):
@@ -13,6 +14,7 @@ class MenuBar(Menu):
         self.session = session
         session.bind("general_settings", self.update_general_options)
         session.bind("param_info", self.update_range_options)
+        session.bind("global_stats_display", self.update_global_stats_options)
         options = [
             "Save Current Session",
             "Save All Genes to Library",
@@ -38,6 +40,7 @@ class MenuBar(Menu):
             "Three Cell Types",
             "Restore Default Settings"
         ]
+        options += ["Show "+each_name for each_name in GLOBAL_STATS_NAMES]
         options = [options[i/2] for i in range(len(options)*2-1,-1,-1)]
         menu = Menu(self, tearoff=0)
         self.add_cascade(label="File", menu=menu)
@@ -114,6 +117,17 @@ class MenuBar(Menu):
         menu.add_separator()
         menu.add_command(label="Adjust Ranges...", command=self.open_range_settings)
 
+        ############### Global Stats Display ################
+        ints = self.global_stats_intvars = [IntVar() for _ in range(6)]
+
+        menu = Menu(self, tearoff=0)
+        self.add_cascade(label="Global Properties", menu=menu)
+        for i in range(6):
+            menu.add_checkbutton(label=options.pop(), variable=ints[i], command=menu_bar_commands[options.pop()])
+
+        menu.add_separator()
+        menu.add_command(label="Evolve by Property...", command=self.open_evolve_by_property)
+        ############### Help & About ################
         menu = Menu(self, tearoff=0)
         self.add_cascade(label="Help", menu=menu)
         menu.add_command(label="Help")
@@ -160,7 +174,6 @@ class MenuBar(Menu):
             # If match
             self.general_intvars["zoom_in_value"].set(temp)
 
-
     def open_range_settings(self):
         t = Toplevel(self.parent)
         self.range_settings_window = RangeSettingsWindow(t, self.session)
@@ -202,3 +215,13 @@ class MenuBar(Menu):
         else:
             ntype = 1 + both # no 3rd type
         self.range_intvars["ntype"].set(ntype)
+    def update_global_stats_options(self):
+        """
+        ints = self.global_stats_intvars = [IntVar() for _ in range(6)]
+        """
+        new = self.session.global_stats_display["show"]
+        for i in range(6):
+            if self.global_stats_intvars[i].get() != new[i]:
+                self.global_stats_intvars[i].set(new[i])
+    def open_evolve_by_property(self):
+        self.parent.evolve_by_property()

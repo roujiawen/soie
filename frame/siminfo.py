@@ -141,13 +141,14 @@ class InteractionParamWidget(Frame):
                 self.strvars[i][j].set(str(each))
 
 class SimInfoFrame(Frame):
-    def __init__(self, parent, session, sim, strvar, figsize=(2.5, 1), dpi=100):
+    def __init__(self, parent, session, sim, strvar, figsize=(2.5, 1.3), dpi=100):
         Frame.__init__(self, parent, background=SIM_INFO_FRAME_COLOR,
             highlightbackground="black", highlightcolor="black",
             highlightthickness=0, width=260, height=700)
         import numpy as np
         self.session = session
         self.sim = sim
+        session.bind("global_stats_display", self.update_global_stats)
         sim.bind("params", self.update_params)
         sim.bind("global_stats", self.update_global_stats)
         sim.bind("step", self.update_step)
@@ -158,7 +159,7 @@ class SimInfoFrame(Frame):
         total_columns = 2
         #title
         self.title = Label(self, text="Model Information", bg=self.cget("bg"), fg=H2_COLOR, font=H2_FONT)
-        self.title.grid(row=0, column=0, columnspan=total_columns, pady=5)
+        self.title.grid(row=0, column=0, columnspan=total_columns, pady=0)
 
         #steps
         self.steps_strvar = StringVar()
@@ -166,7 +167,7 @@ class SimInfoFrame(Frame):
         self.steps_label = Label(self, textvariable=self.steps_strvar, width=13,
             anchor="w", bg=self.cget("bg"), fg=BODY_COLOR, font=BODY_FONT)
         self.steps_widget = AddStepsWidget2(self, self.default_steps_strvar)
-        self.steps_label.grid(row=1, column=0, ipady=3, padx=(20,0), sticky="w")
+        self.steps_label.grid(row=1, column=0, ipady=5, padx=(20,0), sticky="w")
         self.steps_widget.grid(row=1, column=1, padx=(0,20), sticky="e")
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)

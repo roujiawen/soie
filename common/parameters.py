@@ -136,8 +136,18 @@ GENERAL_SETTINGS = {
     "show_movement_value" : 5,
     "zoom_in" : 0,
     "zoom_in_value" : 2.0,
-    "periodic_boundary" : 0
+    "periodic_boundary" : 0,
 }
 
+GLOBAL_STATS_DISPLAY = {
+    "show" : [1, 0, 0, 0, 0, 0]
+}
+
+GLOBAL_STATS_NAMES = ["Group Angular Momentum", "Alignment",
+    "Segregation (Blue)", "Segregation (Red)", "Segregation (Green)",
+    "Clustering"]
+
+GLOBAL_STATS_NAMES_INV = {name:i for i, name in enumerate(GLOBAL_STATS_NAMES)}
+
 ADVANCED_MUTATE = {_:1 for _ in PARAM_INFO}
-ADVANCED_MUTATE["rate"] = 0.15
+ADVANCED_MUTATE["rate"] = 0.2

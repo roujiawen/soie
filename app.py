@@ -6,7 +6,7 @@ import os
 import datetime
 from copy import copy, deepcopy
 from common.styles import *
-from common.parameters import GENERAL_SETTINGS, ADVANCED_MUTATE
+from common.parameters import GENERAL_SETTINGS, ADVANCED_MUTATE, GLOBAL_STATS_DISPLAY, PARAM_INFO, GLOBAL_STATS_NAMES
 from common.tools import is_within
 from common.io_utils import delete_all_genes, save_session_data, load_session_data
 from frame.top import ButtonsFrame, MutateFrame, CrossFrame, InsertLibFrame
@@ -15,7 +15,6 @@ from frame.advancedmutate import AdvancedMutateFrame
 from frame.simulations import SimsFrame
 from menu.menubar import MenuBar
 from model.genetic import Population, GenoGenerator
-from common.parameters import PARAM_INFO
 
 RECORD_PATH = os.path.join(os.path.dirname(__file__), "customdata/record.py")
 
@@ -32,6 +31,8 @@ class SessionData(object):
         "periodic_boundary" : 0
     }
 
+    GLOBAL_STATS_DISPLAY = [1, 1, 1, 1, 1, 1]
+
     set(attr, *args)
     value
     subattr, which, value
@@ -41,11 +42,13 @@ class SessionData(object):
     which, func
     """
     def __init__(self):
-        self.param_info = {}
-        self.general_settings = {}
+        self.data_names = ["general_settings", "param_info", "advanced_mutate", "global_stats_display"]
+        self.param_info = deepcopy(PARAM_INFO)
+        self.general_settings = deepcopy(GENERAL_SETTINGS)
+        self.global_stats_display = deepcopy(GLOBAL_STATS_DISPLAY)
+        self.advanced_mutate = deepcopy(ADVANCED_MUTATE)
         self.bindings = {"general_settings":[], "param_info":[], "vt":[],
-        "advanced_mutate":[]}
-        self.advanced_mutate = {}
+        "advanced_mutate":[], "global_stats_display": []}
 
     def unbind(self, attr, func):
         self.bindings[attr].remove(func)
@@ -108,9 +111,6 @@ class App(Frame):
 
         session = SessionData()
         self.session = session
-        session.param_info = deepcopy(PARAM_INFO)
-        session.general_settings = deepcopy(GENERAL_SETTINGS)
-        session.advanced_mutate = ADVANCED_MUTATE
 
         #Population
         self.population = Population(session)
@@ -179,6 +179,7 @@ class App(Frame):
                 initialfile=datetime.datetime.now().strftime("Session_%m-%d-%Y_at_%I.%M%p")
             )
 
+            #TODO : make automatic
             if output_file_name != "":
                 save_session_data(
                     output_file_name,
@@ -186,6 +187,7 @@ class App(Frame):
                         "general_settings":session.general_settings,
                         "param_info":session.param_info,
                         "advanced_mutate":session.advanced_mutate,
+                        "global_stats_display": session.global_stats_display,
                         "model_data":model_data
                     }
                 )
@@ -254,6 +256,13 @@ class App(Frame):
                 param_info[which]["range"] = [["none"],["none"],["none"]]
             self.update_range_settings(param_info)
 
+        def toggle_global_stats(which):
+            def func():
+                new_settings = self.session.global_stats_display
+                new_settings["show"][which] = 1 - new_settings["show"][which]
+                self.session.set("global_stats_display", new_settings)
+            return func
+
         menu_bar_commands = {
         "Save Current Session": save_current_session,
         "Save All Genes to Library": self.sims_frame.save_all,
@@ -279,11 +288,11 @@ class App(Frame):
         "Three Cell Types":set_ratio([0., float('inf'), 0., 1.]),
         "Restore Default Settings":self.default_range_settings
         }
-        self.menu_bar = MenuBar(self, session, master, menu_bar_commands)
+        ##############
+        for i, each_name in enumerate(GLOBAL_STATS_NAMES):
+            menu_bar_commands["Show "+each_name] = toggle_global_stats(i)
 
-        #TODO: is this necessary
-        # for each in ["param_info","general_settings", "advanced_mutate"]:
-        #     session.update(each)
+        self.menu_bar = MenuBar(self, session, master, menu_bar_commands)
 
         for each in self.top_frames:
             each.grid(row=0, column=0, sticky="we")
@@ -294,6 +303,11 @@ class App(Frame):
         self.sims_frame.grid(row=1, column=0)
         self.buttons_frame.grid(row=0, column=0)
         self.rowconfigure(0, minsize=28)
+
+        self.new_pop()
+        #TODO: is this necessary
+        for each in self.session.data_names:
+            self.session.update(each)
 
     def get_top_frame(self):
         return self.current_top_frame
@@ -332,6 +346,13 @@ class App(Frame):
         self.change_title("Crossover")
         self.sims_frame.to_choose_mode(multiple=True)
         self.click_choose_mode(self.cross_frame)
+
+    def evolve_by_property(self):
+        which_prop = "Group Angular Momentum"
+        num_gen = 20
+        equi_range = (100, 200)
+        eps = 0.1
+        self.population.evolve_by_property(which_prop, num_gen, equi_range, eps)
 
     def insert_lib(self, params):
         self.insert_lib_frame.chosen_gene = params
@@ -382,10 +403,10 @@ class App(Frame):
     def load_session(self, input_file_name):
         #TODO: `setattr` not reactive?
         session_data = load_session_data(input_file_name)
-        for each in ["param_info","general_settings", "advanced_mutate"]:
+        for each in self.session.data_names:
             setattr(self.session, each, session_data[each])
         self.population.load_prev_session(session_data["model_data"])
-        for each in ["param_info","general_settings", "advanced_mutate"]:
+        for each in self.session.data_names:
             self.session.update(each)
 
 

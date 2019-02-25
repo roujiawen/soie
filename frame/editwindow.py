@@ -487,6 +487,7 @@ class EditWindow(Frame):
         self.parent = parent
         self.session = session
         session.bind("vt", self.update_graph)
+        session.bind("global_stats_display", self.update_global_stats)
         sim.bind("global_stats", self.update_global_stats, first=True)
         sim.bind("state", self.update_graph, first=True)
         self.sim = sim
@@ -509,7 +510,6 @@ class EditWindow(Frame):
         self.property_widget = PlotWidget(self, figsize=property_figsize, dpi=dpi)
         self.property_widget.large_plot()
         self.update_global_stats()
-        self.property_widget.large_legend()
 
 
         self.edit_frame.grid(column=0, row=0, rowspan=3)
@@ -527,6 +527,7 @@ class EditWindow(Frame):
 
     def close(self):
         self.session.unbind("vt", self.update_graph)
+        self.session.unbind("global_stats_display", self.update_global_stats)
         self.sim.unbind("state", self.update_graph)
         self.sim.unbind("global_stats", self.update_global_stats)
         self.edit_frame.unbind()
