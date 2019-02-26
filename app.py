@@ -181,19 +181,10 @@ class App(Frame):
                 initialfile=datetime.datetime.now().strftime("Session_%m-%d-%Y_at_%I.%M%p")
             )
 
-            #TODO : make automatic
             if output_file_name != "":
-                save_session_data(
-                    output_file_name,
-                    {
-                        "general_settings":session.general_settings,
-                        "param_info":session.param_info,
-                        "advanced_mutate":session.advanced_mutate,
-                        "global_stats_display": session.global_stats_display,
-                        "evolve_property_settings": session.evolve_property_settings,
-                        "model_data":model_data
-                    }
-                )
+                session_data = {name:getattr(session, name) for name in session.data_names}
+                session_data["model_data"] = model_data
+                save_session_data(output_file_name, session_data)
 
                 tkMessageBox.showinfo("", "Current session has been saved!")
 
@@ -308,7 +299,7 @@ class App(Frame):
         self.rowconfigure(0, minsize=28)
 
         self.new_pop()
-        #TODO: is this necessary
+
         for each in self.session.data_names:
             self.session.update(each)
 
@@ -417,7 +408,6 @@ class App(Frame):
         self.update_range_settings(param_info)
 
     def load_session(self, input_file_name):
-        #TODO: `setattr` not reactive?
         session_data = load_session_data(input_file_name)
         for each in self.session.data_names:
             setattr(self.session, each, session_data[each])

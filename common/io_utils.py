@@ -12,7 +12,6 @@ def save_session_data(output_file_name, session_data):
         json.dump(session_data, f)
 
 def load_session_data(input_file_name):
-    #TODO: IOError: [Errno 2] No such file or directory: '' when cancel
     with open(input_file_name, "r") as f:
         session_data = json.load(f)
     return session_data

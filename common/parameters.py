@@ -140,7 +140,7 @@ GENERAL_SETTINGS = {
 }
 
 GLOBAL_STATS_DISPLAY = {
-    "show" : [1, 0, 0, 0, 0, 0]
+    "show" : [1, 1, 1, 1, 1, 1]
 }
 
 GLOBAL_STATS_NAMES = ["Group Angular Momentum", "Alignment",
@@ -149,16 +149,10 @@ GLOBAL_STATS_NAMES = ["Group Angular Momentum", "Alignment",
 
 GLOBAL_STATS_NAMES_INV = {name:i for i, name in enumerate(GLOBAL_STATS_NAMES)}
 
-# EVOLVE_PROPERTY_SETTINGS = {
-#     "which_prop" : "Group Angular Momentum",
-#     "num_gen" : 10,
-#     "equi_range": (100, 200)
-# }
-#TODO
 EVOLVE_PROPERTY_SETTINGS = {
     "which_prop" : "Group Angular Momentum",
-    "num_gen" : 3,
-    "equi_range": (10, 20)
+    "num_gen" : 10,
+    "equi_range": (100, 200)
 }
 
 ADVANCED_MUTATE = {_:1 for _ in PARAM_INFO}

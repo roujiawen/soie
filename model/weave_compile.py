@@ -233,9 +233,9 @@ def weave_compile():
 
           // SEGREGATION PARAMETER (2,3,4*steps+ith_step)
           if (n_per_species[k] > 0) {
-            stat_seg /= (double) n_per_species[k];
+            stat_seg /= (double) n_per_species[k] * (double) n_per_species[k];
           }
-          global_stats[(2+k) * steps + ith_step] = stat_seg;
+          global_stats[(2+k) * steps + ith_step] = stat_seg * n;
 
           start_index = end_index;
         }
@@ -481,9 +481,9 @@ def weave_compile():
 
           // SEGREGATION PARAMETER (2,3,4*steps+ith_step)
           if (n_per_species[k] > 0) {
-            stat_seg /= (double) n_per_species[k];
+            stat_seg /= (double) n_per_species[k] * (double) n_per_species[k];
           }
-          global_stats[(2+k) * steps + ith_step] = stat_seg;
+          global_stats[(2+k) * steps + ith_step] = stat_seg * n;
 
           start_index = end_index;
         }

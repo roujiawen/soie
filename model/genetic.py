@@ -6,7 +6,7 @@ import concurrent.futures
 import copy_reg
 import types
 
-DEFAULT_STEPS = 0
+DEFAULT_STEPS = 20
 
 
 
