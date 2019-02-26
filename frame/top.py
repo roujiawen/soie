@@ -150,7 +150,7 @@ class MutateFrame(Frame):
 
     def cancel(self):
         self.advanced_frame.grid_remove()
-        self.parent.cancel_choose_mode()
+        self.parent.back_to_home_topframe()
 
     def advanced(self):
         self.advanced_frame.grid()
@@ -205,8 +205,7 @@ class CrossFrame(Frame):
         self.cancel()
 
     def cancel(self):
-        self.parent.cancel_choose_mode()
-
+        self.parent.back_to_home_topframe()
 
 class InsertLibFrame(Frame):
     def __init__(self, parent, insert_func):
@@ -264,7 +263,7 @@ class InsertLibFrame(Frame):
 
     def cancel(self):
         self.all_intvar.set(0)
-        self.parent.cancel_choose_mode()
+        self.parent.back_to_home_topframe()
 
     def check_all(self):
         if self.all_intvar.get() == 1:
@@ -273,3 +272,35 @@ class InsertLibFrame(Frame):
         else:
             self.parent.sims_frame.clear_all_selection()
             self.unreveal_button()
+
+
+class EvolvingFrame(Frame):
+    def __init__(self, parent):
+        Frame.__init__(self, parent)
+        self.parent = parent
+
+        self.display_text = StringVar()
+        self.label = Label(self, textvariable=self.display_text, fg=LG_BODY_COLOR, font=LG_BODY_FONT)
+        self.label.grid(row=0, column=1)
+
+        self.buttons = create_buttons(self, {
+            "cancel": ["<Back", 0, 0], # \u21a9
+        })
+
+        #self.buttons["ok"].grid_remove()
+        self.buttons["cancel"].grid(sticky="w")
+        self.buttons["cancel"].grid_remove()
+
+        for i, weight in enumerate([1,1,1]):
+            self.columnconfigure(i, weight=weight, minsize=50)
+
+    def grid_(self):
+        self.buttons["cancel"].grid_remove()
+        self.display_text.set("")
+        self.grid()
+
+    def done(self):
+        self.buttons["cancel"].grid()
+
+    def cancel(self):
+        self.parent.back_to_home_topframe()

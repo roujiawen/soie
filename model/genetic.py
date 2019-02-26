@@ -6,7 +6,7 @@ import concurrent.futures
 import copy_reg
 import types
 
-DEFAULT_STEPS = 20
+DEFAULT_STEPS = 0
 
 
 
@@ -390,10 +390,10 @@ class Population(object):
         self.add_steps_all(DEFAULT_STEPS, sims=[each for each in self.simulations
                                                 if each not in chosen_sims])
 
-    def mutate_with_restart(self, chosen_sim, target_steps):
-        """Change eight simulations into the children of one chosen simulation
-        through parameter mutation.
+    def mutate2(self, chosen_sim, target_steps):
+        """Mutate function customized for evolve_by_property
         """
+        sf, pb, vt = self.session.pheno_settings
 
         #take one simulation
         #generate eight new instances of genotypes
@@ -402,12 +402,14 @@ class Population(object):
         #put them into simulations
         for each in self.simulations:
             if each != chosen_sim:
-                each.insert_new_genotype(children.pop())
-
-        chosen_sim.restart()
+                each.genotype = children.pop()
+                each.call_bindings("params")
+            # Start new Phenotype but not updating display
+            each.phenotype = Phenotype(each.genotype, sf, pb)
         self.add_steps_all(target_steps)
 
-    def evolve_by_property(self, which_prop, num_gen, equi_range, eps):
+    def evolve_by_property(self, which_prop, num_gen, equi_range,
+            display_text, highlight_func):
         start_step, end_step = equi_range
         prop_index = GLOBAL_STATS_NAMES_INV[which_prop]
 
@@ -416,16 +418,26 @@ class Population(object):
 
         # For each generation
         for each_gen in range(num_gen):
-            if np.random.random() < eps:
-                # For small probability, choose random survivor
-                parent = np.random.choice(self.simulations)
-            else:
-                # Otherwise, survival of the fittest
-                fitnesses = [np.abs(each_sim.global_stats[prop_index,start_step:end_step]).mean()
-                        for each_sim in self.simulations]
-                parent = self.simulations[np.argmax(fitnesses)]
-            print "parent:", parent.id, "fitness:", np.max(fitnesses)
-            self.mutate_with_restart(parent, end_step)
+            fitnesses = [np.abs(each_sim.global_stats[prop_index,start_step:end_step]).mean()
+                    for each_sim in self.simulations]
+            parent = self.simulations[np.argmax(fitnesses)]
+
+            # Update display text and highlight parent
+            display_text.set("Generation:{}/{}\tMax Fitness:{}".format(each_gen, num_gen,
+                            round(np.max(fitnesses),4)))
+            highlight_func(int(parent.id))
+            self.mutate2(parent, end_step)
+
+        # Final fitness
+        fitnesses = [np.abs(each_sim.global_stats[prop_index,start_step:end_step]).mean()
+                for each_sim in self.simulations]
+        parent = self.simulations[np.argmax(fitnesses)]
+
+        # Update display text and highlight parent
+        display_text.set("Generation:{}/{}\tMax Fitness:{}".format(num_gen, num_gen,
+                        round(np.max(fitnesses),4)))
+        highlight_func(int(parent.id))
+
 
     def insert_from_lib(self, param, chosen_sims):
         for each in chosen_sims:

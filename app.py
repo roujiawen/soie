@@ -6,10 +6,10 @@ import os
 import datetime
 from copy import copy, deepcopy
 from common.styles import *
-from common.parameters import GENERAL_SETTINGS, ADVANCED_MUTATE, GLOBAL_STATS_DISPLAY, PARAM_INFO, GLOBAL_STATS_NAMES
+from common.parameters import GENERAL_SETTINGS, ADVANCED_MUTATE, GLOBAL_STATS_DISPLAY, EVOLVE_PROPERTY_SETTINGS, PARAM_INFO, GLOBAL_STATS_NAMES
 from common.tools import is_within
 from common.io_utils import delete_all_genes, save_session_data, load_session_data
-from frame.top import ButtonsFrame, MutateFrame, CrossFrame, InsertLibFrame
+from frame.top import ButtonsFrame, MutateFrame, CrossFrame, InsertLibFrame, EvolvingFrame
 from frame.siminfo import SimInfoFrame
 from frame.advancedmutate import AdvancedMutateFrame
 from frame.simulations import SimsFrame
@@ -42,13 +42,14 @@ class SessionData(object):
     which, func
     """
     def __init__(self):
-        self.data_names = ["general_settings", "param_info", "advanced_mutate", "global_stats_display"]
+        self.data_names = ["general_settings", "param_info", "advanced_mutate", "global_stats_display", "evolve_property_settings"]
         self.param_info = deepcopy(PARAM_INFO)
         self.general_settings = deepcopy(GENERAL_SETTINGS)
         self.global_stats_display = deepcopy(GLOBAL_STATS_DISPLAY)
+        self.evolve_property_settings = deepcopy(EVOLVE_PROPERTY_SETTINGS)
         self.advanced_mutate = deepcopy(ADVANCED_MUTATE)
         self.bindings = {"general_settings":[], "param_info":[], "vt":[],
-        "advanced_mutate":[], "global_stats_display": []}
+        "advanced_mutate":[], "global_stats_display": [], "evolve_property_settings": []}
 
     def unbind(self, attr, func):
         self.bindings[attr].remove(func)
@@ -139,7 +140,8 @@ class App(Frame):
             mutate_func=self.population.mutate, advanced_frame=self.advanced_mutate_frame)
         self.cross_frame = CrossFrame(self, cross_func=self.population.crossover)
         self.insert_lib_frame = InsertLibFrame(self, insert_func=self.population.insert_from_lib)
-        self.top_frames = [self.mutate_frame, self.cross_frame, self.insert_lib_frame]
+        self.evolving_frame = EvolvingFrame(self)
+        self.top_frames = [self.mutate_frame, self.cross_frame, self.insert_lib_frame, self.evolving_frame]
         self.current_top_frame = self.buttons_frame
 
 
@@ -188,6 +190,7 @@ class App(Frame):
                         "param_info":session.param_info,
                         "advanced_mutate":session.advanced_mutate,
                         "global_stats_display": session.global_stats_display,
+                        "evolve_property_settings": session.evolve_property_settings,
                         "model_data":model_data
                     }
                 )
@@ -329,36 +332,49 @@ class App(Frame):
         else:
             self.master.title(new_title)
 
-    def cancel_choose_mode(self):
+    def back_to_home_topframe(self):
         self.sims_frame.to_view_mode()
         self.change_top_frame(self.buttons_frame)
         self.change_title()
 
-    def click_choose_mode(self, frame):
-        self.change_top_frame(frame)
-
     def mutate(self):
         self.change_title("Mutate")
         self.sims_frame.to_choose_mode(multiple=False)
-        self.click_choose_mode(self.mutate_frame)
+        self.change_top_frame(self.mutate_frame)
 
     def cross(self):
         self.change_title("Crossover")
         self.sims_frame.to_choose_mode(multiple=True)
-        self.click_choose_mode(self.cross_frame)
+        self.change_top_frame(self.cross_frame)
 
-    def evolve_by_property(self):
-        which_prop = "Group Angular Momentum"
-        num_gen = 20
-        equi_range = (100, 200)
-        eps = 0.1
-        self.population.evolve_by_property(which_prop, num_gen, equi_range, eps)
+    def evolve_by_property(self, new_settings):
+        # Disable show_movement
+        general_settings = self.session.general_settings
+        general_settings["show_movement"] = 0
+        self.update_general_settings(general_settings)
+
+        # Change title, top frame and sim frame mode
+        self.change_title("Evolving...")
+        self.sims_frame.to_evolving_mode()
+        self.change_top_frame(self.evolving_frame)
+
+        self.session.set("evolve_property_settings", new_settings)
+        which_prop = new_settings["which_prop"]
+        num_gen = new_settings["num_gen"]
+        equi_range = new_settings["equi_range"]
+        self.population.evolve_by_property(which_prop, num_gen, equi_range,
+            self.evolving_frame.display_text,
+            self.sims_frame.highlight)
+
+        # Back button appears
+        self.change_title("Done!")
+        self.evolving_frame.done()
 
     def insert_lib(self, params):
         self.insert_lib_frame.chosen_gene = params
         self.change_title("Insert from Library")
         self.sims_frame.to_choose_mode(multiple=True)
-        self.click_choose_mode(self.insert_lib_frame)
+        self.change_top_frame(self.insert_lib_frame)
 
     def default_range_settings(self):
         self.update_range_settings(PARAM_INFO)

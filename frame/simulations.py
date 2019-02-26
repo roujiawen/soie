@@ -112,8 +112,10 @@ class GraphFrame(Frame):
         if self.selected:
             if self.parent.mode == "view":
                 self.config(background=ON_CLICK_COLOR)
-            else:
+            elif (self.parent.mode == "choose_multiple") or (self.parent.mode == "choose_single"):
                 self.config(background=ON_SELECT_COLOR)
+            elif (self.parent.mode == "evolving"):
+                self.config(background=EVOLVING_BORDER_COLOR)
         else:
             self.config(background=SIMS_FRAME_COLOR)
 
@@ -130,7 +132,9 @@ class GraphFrame(Frame):
     def on_click(self, event=None):
         # This will result in not being able to deselect
         # e.g. click twice on the same item will still result in selected state
-
+        if self.parent.mode == "evolving":
+            return
+            
         if self.parent.mode != "choose_multiple":
             self.parent.clear_all_selection()
 
@@ -144,7 +148,6 @@ class GraphFrame(Frame):
             self.info_frame.grid()
             self.parent.clear_info(new=self.info_frame)
             self.info_frame.update()
-
         else:
             self.parent.choose(self)
 
@@ -224,6 +227,17 @@ class SimsFrame(Frame):
             self.mode = "choose_multiple"
         else:
             self.mode = "choose_single"
+        self.clear_all_selection()
+        self.clear_info()
+        for each in self.graphs: each.unbind_()
+
+    def highlight(self, which):
+        # To highlight the parent chosen for next generation of evolution
+        self.clear_all_selection()
+        self.graphs[which].select()
+
+    def to_evolving_mode(self):
+        self.mode = "evolving"
         self.clear_all_selection()
         self.clear_info()
         for each in self.graphs: each.unbind_()

@@ -17,6 +17,7 @@ AXIS_LIMIT = 10.
 ON_HOVER_COLOR = "#DCDCDC" #light grey
 ON_CLICK_COLOR = "#808080" #dark grey
 ON_SELECT_COLOR = "#1589C9"
+EVOLVING_BORDER_COLOR = "#FE5F55"#FE5D26  D62839
 
 ##########RIGHT FRAME###########
 #SimInfoFrame

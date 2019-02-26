@@ -3,6 +3,7 @@ from Tkinter import *
 import tkFileDialog
 from menu.range import RangeSettingsWindow
 from menu.general import GeneralSettingsWindow
+from menu.evolve_property import EvolvePropertyWindow
 from menu.library import LibraryWindow
 from common.parameters import GLOBAL_STATS_NAMES
 from copy import deepcopy
@@ -224,4 +225,6 @@ class MenuBar(Menu):
             if self.global_stats_intvars[i].get() != new[i]:
                 self.global_stats_intvars[i].set(new[i])
     def open_evolve_by_property(self):
-        self.parent.evolve_by_property()
+        t = Toplevel(self.parent)
+        self.evolve_property_window = EvolvePropertyWindow(t, deepcopy(self.session.evolve_property_settings), self.parent.evolve_by_property)
+        self.evolve_property_window.grid(padx=(40,10), pady=(20,5))
