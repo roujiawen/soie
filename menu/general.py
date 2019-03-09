@@ -1,14 +1,15 @@
-from Tkinter import *
-from common.styles import *
-from common.tools import fit_into
+import Tkinter as tk
 from copy import deepcopy
+
+from common.styles import BODY_COLOR
+from common.tools import fit_into
 
 GENERAL_SETTINGS_LG_FONT = ('Helvetica', '12')
 GENERAL_SETTINGS_SM_FONT = ('Helvetica', '9')
 
-class ShowTailEditor(Frame):
+class ShowTailEditor(tk.Frame):
     def __init__(self, parent, row=0, value1=5.0, value2=0.5, from1=0.1, to1=30.0, roundto1=1, from2=0.01, to2=1.0, roundto2=2):
-        Frame.__init__(self, parent)
+        tk.Frame.__init__(self, parent)
         self.roundto1=roundto1
         self.lowerbound1 = from1
         self.upperbound1 = to1
@@ -24,10 +25,10 @@ class ShowTailEditor(Frame):
         self.value1 = value1
         self.value2 = value2
 
-        self.label1 = Label(self, text="length:",font=GENERAL_SETTINGS_SM_FONT, fg=BODY_COLOR)
+        self.label1 = tk.Label(self, text="length:",font=GENERAL_SETTINGS_SM_FONT, fg=BODY_COLOR)
         self.label1.grid(row=0, column=0)
 
-        self.entry1 = Entry(self, width=3, validate="all", validatecommand=vcmd1, font=GENERAL_SETTINGS_SM_FONT, fg=BODY_COLOR)
+        self.entry1 = tk.Entry(self, width=3, validate="all", validatecommand=vcmd1, font=GENERAL_SETTINGS_SM_FONT, fg=BODY_COLOR)
         self.entry1.grid(row=0, column=1)
 
         self.entry1.bind('<Return>', self.update_value1)
@@ -35,10 +36,10 @@ class ShowTailEditor(Frame):
 
         self.set_value1(value1)
 
-        self.label2 = Label(self, text="  alpha:", font=GENERAL_SETTINGS_SM_FONT, fg=BODY_COLOR)
+        self.label2 = tk.Label(self, text="  alpha:", font=GENERAL_SETTINGS_SM_FONT, fg=BODY_COLOR)
         self.label2.grid(row=0, column=2)
 
-        self.entry2 = Entry(self, width=3, validate="all", validatecommand=vcmd2, font=GENERAL_SETTINGS_SM_FONT, fg=BODY_COLOR)
+        self.entry2 = tk.Entry(self, width=3, validate="all", validatecommand=vcmd2, font=GENERAL_SETTINGS_SM_FONT, fg=BODY_COLOR)
         self.entry2.grid(row=0, column=3)
 
         self.entry2.bind('<Return>', self.update_value2)
@@ -82,7 +83,7 @@ class ShowTailEditor(Frame):
 
     def set_value1(self, v):
         self.value1 = v
-        self.entry1.delete(0, END)
+        self.entry1.delete(0, tk.END)
         self.entry1.insert(0, round(v, self.roundto1))
 
     def update_value2(self, event=None):
@@ -97,7 +98,7 @@ class ShowTailEditor(Frame):
 
     def set_value2(self, v):
         self.value2 = v
-        self.entry2.delete(0, END)
+        self.entry2.delete(0, tk.END)
         self.entry2.insert(0, round(v, self.roundto2))
 
     def last_update(self):
@@ -122,9 +123,9 @@ class ShowTailEditor(Frame):
     def get(self):
         return [self.value1, self.value2]
 
-class ZoomInEditor(Frame):
+class ZoomInEditor(tk.Frame):
     def __init__(self, parent, row=0, value=1.0, from_=0.1, to=10.0, roundto=2):
-        Frame.__init__(self, parent)
+        tk.Frame.__init__(self, parent)
         self.roundto=roundto
         self.lowerbound = from_
         self.upperbound = to
@@ -133,15 +134,15 @@ class ZoomInEditor(Frame):
 
         vcmd = (self.register(self.is_okay),'%P')
 
-        self.entry = Entry(self, width=3, validate="all", validatecommand=vcmd, font=GENERAL_SETTINGS_SM_FONT, fg=BODY_COLOR)
+        self.entry = tk.Entry(self, width=3, validate="all", validatecommand=vcmd, font=GENERAL_SETTINGS_SM_FONT, fg=BODY_COLOR)
         self.entry.grid(row=0, column=0)
 
-        self.label = Label(self, text="x",font=GENERAL_SETTINGS_SM_FONT, fg=BODY_COLOR)
+        self.label = tk.Label(self, text="x",font=GENERAL_SETTINGS_SM_FONT, fg=BODY_COLOR)
         self.label.grid(row=0, column=1)
 
-        self.square_size_stringvar = StringVar()
+        self.square_size_stringvar = tk.StringVar()
         self.square_size_stringvar.set("     (Resulting Square Size: 10x10)")
-        self.square_size = Label(self, textvariable=self.square_size_stringvar,font=GENERAL_SETTINGS_SM_FONT, fg=BODY_COLOR, width=30)
+        self.square_size = tk.Label(self, textvariable=self.square_size_stringvar,font=GENERAL_SETTINGS_SM_FONT, fg=BODY_COLOR, width=30)
         self.square_size.grid(row=0, column=2)
 
         self.entry.bind('<Return>', self.update_value)
@@ -177,7 +178,7 @@ class ZoomInEditor(Frame):
 
     def set_value(self, v):
         self.value = v
-        self.entry.delete(0, END)
+        self.entry.delete(0, tk.END)
         self.entry.insert(0, round(v, self.roundto))
         self.square_size_stringvar.set("     (Resulting Square Size: {}x{})".format(round(10.0/v, 1), round(10.0/v, 1)))
 
@@ -192,9 +193,9 @@ class ZoomInEditor(Frame):
         self.entry["state"] = "normal"
         self.label["state"] = "normal"
 
-class ShowMovementEditor(Frame):
+class ShowMovementEditor(tk.Frame):
     def __init__(self, parent, row=0, value=10, from_=1, to=500):
-        Frame.__init__(self, parent)
+        tk.Frame.__init__(self, parent)
         self.lowerbound = from_
         self.upperbound = to
         self.value = value
@@ -202,13 +203,13 @@ class ShowMovementEditor(Frame):
 
         vcmd = (self.register(self.is_okay),'%P')
 
-        self.label1 = Label(self, text="for every", font=GENERAL_SETTINGS_SM_FONT, fg=BODY_COLOR)
+        self.label1 = tk.Label(self, text="for every", font=GENERAL_SETTINGS_SM_FONT, fg=BODY_COLOR)
         self.label1.grid(row=0, column=0)
 
-        self.entry = Entry(self, width=3, validate="all", validatecommand=vcmd, font=GENERAL_SETTINGS_SM_FONT, fg=BODY_COLOR)
+        self.entry = tk.Entry(self, width=3, validate="all", validatecommand=vcmd, font=GENERAL_SETTINGS_SM_FONT, fg=BODY_COLOR)
         self.entry.grid(row=0, column=1)
 
-        self.label2 = Label(self, text="time step(s)", font=GENERAL_SETTINGS_SM_FONT, fg=BODY_COLOR)
+        self.label2 = tk.Label(self, text="time step(s)", font=GENERAL_SETTINGS_SM_FONT, fg=BODY_COLOR)
         self.label2.grid(row=0, column=2)
 
         self.entry.bind('<Return>', self.update_value)
@@ -244,7 +245,7 @@ class ShowMovementEditor(Frame):
 
     def set_value(self, v):
         self.value = int(v)
-        self.entry.delete(0, END)
+        self.entry.delete(0, tk.END)
         self.entry.insert(0, int(v))
 
     def last_update(self):
@@ -260,9 +261,9 @@ class ShowMovementEditor(Frame):
         self.label1["state"] = "normal"
         self.label2["state"] = "normal"
 
-class GeneralSettingsWindow(Frame):
+class GeneralSettingsWindow(tk.Frame):
     def __init__(self, master, general_settings, func):
-        Frame.__init__(self, master)
+        tk.Frame.__init__(self, master)
         self.master = master
         self.func = func
         master.wm_title("Advanced Control")
@@ -272,9 +273,9 @@ class GeneralSettingsWindow(Frame):
         indent = 25
 
         # Show Trace
-        temp=Frame(self)
-        self.show_tail_intvar = IntVar()
-        self.show_tail_check = Checkbutton(
+        temp=tk.Frame(self)
+        self.show_tail_intvar = tk.IntVar()
+        self.show_tail_check = tk.Checkbutton(
             temp,
             text = "Show Velocity Trace",
             variable=self.show_tail_intvar,
@@ -289,9 +290,9 @@ class GeneralSettingsWindow(Frame):
         self.show_tail_editor.grid(row=1, padx=indent, sticky="w")
         temp.grid(sticky="w", pady=subframe_spacing)
         # Show Movement
-        temp = Frame(self)
-        self.show_movement_intvar = IntVar()
-        self.show_movement_check = Checkbutton(
+        temp = tk.Frame(self)
+        self.show_movement_intvar = tk.IntVar()
+        self.show_movement_check = tk.Checkbutton(
             temp,
             text = "Show Movement",
             variable=self.show_movement_intvar,
@@ -305,9 +306,9 @@ class GeneralSettingsWindow(Frame):
         self.show_movement_editor.grid(row=1, padx=indent, sticky="w")
         temp.grid(sticky="w", pady=subframe_spacing)
         # Zoom In
-        temp = Frame(self)
-        self.zoom_in_intvar = IntVar()
-        self.zoom_in_check = Checkbutton(
+        temp = tk.Frame(self)
+        self.zoom_in_intvar = tk.IntVar()
+        self.zoom_in_check = tk.Checkbutton(
             temp,
             text = "Zoom In",
             variable=self.zoom_in_intvar,
@@ -322,9 +323,9 @@ class GeneralSettingsWindow(Frame):
         self.zoom_in_editor.grid(row=1, padx=indent, sticky="w")
         temp.grid(sticky="w", pady=subframe_spacing)
         # Periodic Boundary
-        self.periodic_boundary_intvar = IntVar()
+        self.periodic_boundary_intvar = tk.IntVar()
         self.periodic_boundary_intvar.set(general_settings["periodic_boundary"])
-        self.periodic_boundary_check = Checkbutton(
+        self.periodic_boundary_check = tk.Checkbutton(
             self,
             text = "Periodic Boundary",
             variable=self.periodic_boundary_intvar,
@@ -333,9 +334,9 @@ class GeneralSettingsWindow(Frame):
         self.periodic_boundary_check.grid(sticky="w", pady=subframe_spacing)
 
         # Buttons
-        temp = Frame(self)
-        self.default_button = Button(temp, text="Default", width=7, command=self.default)
-        self.apply_button = Button(temp, text="Apply", width=7, command=self.apply)
+        temp = tk.Frame(self)
+        self.default_button = tk.Button(temp, text="Default", width=7, command=self.default)
+        self.apply_button = tk.Button(temp, text="Apply", width=7, command=self.apply)
         temp.grid(column=0, columnspan=2, sticky="e", padx=10, pady=(10,0))
         self.default_button.grid(row=0, column=0, sticky="e", padx=3)
         self.apply_button.grid(row=0, column=1, sticky="w", padx=3)

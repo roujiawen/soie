@@ -1,6 +1,7 @@
-import os
 import json
+import os
 from random import choice
+
 import numpy as np
 
 LIB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)),'libdata')

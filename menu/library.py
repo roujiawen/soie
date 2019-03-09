@@ -1,24 +1,16 @@
-import os
 import json
-from Tkinter import *
-from common.styles import *
-from common.io_utils import load_params, delete_gene
-from PIL import ImageTk, Image
+import os
+import Tkinter as tk
+
+from PIL import Image, ImageTk
+
+from common.io_utils import delete_gene, load_params
+from common.styles import ON_HOVER_COLOR, ON_SELECT_COLOR
 
 NCOL = 5
 IMAGE_WIDTH = 108
 HALF_WIDTH = IMAGE_WIDTH/2
 SPACE = 10
-
-def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
-    try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-
-    return os.path.join(base_path, relative_path)
 
 class SavedGene(object):
     def __init__(self, parent, gene_id, data, image, x, y):
@@ -119,9 +111,9 @@ class CanvasGrid(object):
 
 CANVAS_WIDTH = NCOL*(IMAGE_WIDTH+SPACE)
 CANVAS_HEIGHT = 3 * (IMAGE_WIDTH+SPACE)
-class LibraryWindow(Frame):
+class LibraryWindow(tk.Frame):
     def __init__(self, parent, master, func):
-        Frame.__init__(self, master)
+        tk.Frame.__init__(self, master)
         self.master = master
         self.parent = parent
         self.func = func
@@ -134,14 +126,14 @@ class LibraryWindow(Frame):
         # Top Row Buttons
         trash_icon =ImageTk.PhotoImage(Image.open("menu/trash.png"))
         self.image = trash_icon
-        self.delete_button = Button(self, image=trash_icon, bd=0, padx=0, pady=0, width=22, command=self.delete, state=DISABLED)
+        self.delete_button = tk.Button(self, image=trash_icon, bd=0, padx=0, pady=0, width=22, command=self.delete, state=tk.DISABLED)
         self.delete_button.grid(row=0, columnspan=total_columns, sticky="e", padx=15,pady=(5,5))
 
-        self.canvas=Canvas(self,bg='#FFFFFF',width=CANVAS_WIDTH,height=CANVAS_HEIGHT,
+        self.canvas=tk.Canvas(self,bg='#FFFFFF',width=CANVAS_WIDTH,height=CANVAS_HEIGHT,
             scrollregion=(0,0,CANVAS_WIDTH,CANVAS_HEIGHT))
         self.canvas.grid(row=1, column=0)
 
-        self.scroll = Scrollbar(self, orient=VERTICAL, command=self.canvas.yview)
+        self.scroll = tk.Scrollbar(self, orient=tk.VERTICAL, command=self.canvas.yview)
         self.scroll.grid(row=1, column=1, sticky="ns")
 
         self.canvas.config(yscrollcommand=self.scroll.set)
@@ -151,7 +143,7 @@ class LibraryWindow(Frame):
         self.canvas.bind_all('<MouseWheel>', on_vertical)
 
         # Bottom Row Buttons
-        self.open_button = Button(self, text="Open", width=7, command=self.open, state=DISABLED)
+        self.open_button = tk.Button(self, text="Open", width=7, command=self.open, state=tk.DISABLED)
         self.open_button.grid(columnspan=total_columns, sticky="e", padx=15, pady=(10,0))
 
         self.load()
@@ -161,12 +153,12 @@ class LibraryWindow(Frame):
         self.canvas.config(scrollregion=(0, 0, CANVAS_WIDTH, value))
 
     def activate_options(self):
-        self.delete_button.config(state=NORMAL)
-        self.open_button.config(state=NORMAL)
+        self.delete_button.config(state=tk.NORMAL)
+        self.open_button.config(state=tk.NORMAL)
 
     def disable_options(self):
-        self.delete_button.config(state=DISABLED)
-        self.open_button.config(state=DISABLED)
+        self.delete_button.config(state=tk.DISABLED)
+        self.open_button.config(state=tk.DISABLED)
 
     def select_new(self, new):
         if self.selected is not None:

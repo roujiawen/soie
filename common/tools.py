@@ -1,5 +1,7 @@
-from Tkinter import *
-from common.styles import *
+import Tkinter as tk
+
+from common.styles import BUTTON_X_MARGIN
+
 
 def is_within(value, min_, max_):
     """ Inclusive.
@@ -25,7 +27,7 @@ def create_buttons(parent, button_dict):
     """
     buttons = {}
     for name, attributes in button_dict.items():
-        b = Button(parent, text=attributes[0], command=getattr(parent,name), padx=BUTTON_X_MARGIN)
+        b = tk.Button(parent, text=attributes[0], command=getattr(parent,name), padx=BUTTON_X_MARGIN)
         b.grid(row=attributes[1], column=attributes[2])
         buttons[name] = b
     return buttons

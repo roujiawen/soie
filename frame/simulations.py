@@ -1,13 +1,16 @@
-from Tkinter import *
-from common.styles import *
-from common.io_utils import save_gene
-from common.plotting import PlotWidget
-from frame.editwindow import EditWindow
+import Tkinter as tk
 import tkMessageBox
 
-class GraphFrame(Frame):
+from common.io_utils import save_gene
+from common.plotting import PlotWidget
+from common.styles import (AXIS_LIMIT, EVOLVING_BORDER_COLOR, ON_CLICK_COLOR,
+                           ON_HOVER_COLOR, ON_SELECT_COLOR, SIMS_FRAME_COLOR)
+from frame.editwindow import EditWindow
+
+
+class GraphFrame(tk.Frame):
     def __init__(self, parent, session, sim, info_frame, figsize=(2.15, 2.15), dpi=100):
-        Frame.__init__(self, parent)
+        tk.Frame.__init__(self, parent)
         self.parent = parent
         self.session = session
         sim.bind("state", self.update_graph)
@@ -33,7 +36,7 @@ class GraphFrame(Frame):
         self.widget.bind("<ButtonRelease-1>", self.on_click)
 
         # Popup Menu
-        self.popup_menu = Menu(self, tearoff=0)
+        self.popup_menu = tk.Menu(self, tearoff=0)
         self.popup_menu.add_command(label="Edit", command=self.edit)
         self.popup_menu.add_separator()
         self.popup_menu.add_command(label="Restart", command=self.restart)
@@ -60,12 +63,12 @@ class GraphFrame(Frame):
     def freeze(self):
         self.state = "DISABLED"
         for each in [0,2,3,6]:
-            self.popup_menu.entryconfigure(each,state=DISABLED)
+            self.popup_menu.entryconfigure(each,state=tk.DISABLED)
 
     def unfreeze(self):
         self.state = "NORMAL"
         for each in [0,2,3,6]:
-            self.popup_menu.entryconfigure(each,state=NORMAL)
+            self.popup_menu.entryconfigure(each,state=tk.NORMAL)
 
     def restart(self):
         self.on_click()
@@ -91,7 +94,7 @@ class GraphFrame(Frame):
     def edit(self, event=None):
         if self.state == "DISABLED": return
         self.freeze()
-        t = Toplevel(self)
+        t = tk.Toplevel(self)
         self.edit_window = EditWindow(self, t, self.session, self.sim)
 
     def copy(self):
@@ -134,7 +137,7 @@ class GraphFrame(Frame):
         # e.g. click twice on the same item will still result in selected state
         if self.parent.mode == "evolving":
             return
-            
+
         if self.parent.mode != "choose_multiple":
             self.parent.clear_all_selection()
 
@@ -151,7 +154,7 @@ class GraphFrame(Frame):
         else:
             self.parent.choose(self)
 
-class SimsFrame(Frame):
+class SimsFrame(tk.Frame):
     """
 
     Attributes
@@ -160,7 +163,7 @@ class SimsFrame(Frame):
         Could be any of {"view", "choose_single", "choose_multiple"}
     """
     def __init__(self, parent, session, sims, info_frames, get_top_frame):
-        Frame.__init__(self, parent)
+        tk.Frame.__init__(self, parent)
         self.parent = parent
         self.get_top_frame = get_top_frame
         self.mode = "view"

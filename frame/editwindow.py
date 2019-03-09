@@ -1,14 +1,21 @@
-from Tkinter import *
-from common.styles import *
-from common.tools import fit_into
-from common.parameters import *
-from common.plotting import PlotWidget
-from frame.top import AddStepsWidget
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+import Tkinter as tk
 from copy import copy
 
-class SingleEntry(Entry):
+from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
+                                               NavigationToolbar2TkAgg)
+from matplotlib.figure import Figure
+
+from common.parameters import PARAM
+from common.plotting import PlotWidget
+from common.styles import (AXIS_LIMIT, BODY_COLOR, BODY_FONT, BUTTON_X_MARGIN,
+                           CELL_COLORS, CELL_TYPE_LABELS, EDIT_BODY_COLOR,
+                           EDIT_BODY_FONT, EDIT_COLOR_FONT, HEADER_COLOR,
+                           HEADER_FONT)
+from common.tools import fit_into
+from frame.top import AddStepsWidget
+
+
+class SingleEntry(tk.Entry):
     """
     For Interaction Parameter
     Validation:
@@ -17,7 +24,7 @@ class SingleEntry(Entry):
             force input to be between ["from", "to"] and rounded
     """
     def __init__(self, parent, info, value):
-        Entry.__init__(self, parent, width=6)
+        tk.Entry.__init__(self, parent, width=6)
         if info["range"][1] != float("inf"):
             self.maxlen = [len(str(int(info["range"][1]))), info["roundto"]]
         else:
@@ -58,14 +65,14 @@ class SingleEntry(Entry):
 
     def set_value(self,v):
         self.value = self.round(self.fit_into(v))
-        self.delete(0,END)
+        self.delete(0,tk.END)
         self.insert(0,self.value)
 
     def get_value(self):
         self.check_value()
         return self.value
 
-class RatioEditor(Frame):
+class RatioEditor(tk.Frame):
     """
     Validation:
         Real-time: allows "" or "." or float
@@ -74,7 +81,7 @@ class RatioEditor(Frame):
 
     """
     def __init__(self, parent, name, info, values):
-        Frame.__init__(self, parent)
+        tk.Frame.__init__(self, parent)
         if info["range"][1] != float("inf"):
             self.maxlen = [len(str(int(info["range"][1]))), info["roundto"]]
         else:
@@ -84,24 +91,24 @@ class RatioEditor(Frame):
         self.values = [0]*3
         self.pair_widgets = []
 
-        """self.headers = [Label(self, text=_, font=EDIT_BODY_FONT, fg=EDIT_BODY_COLOR)
+        """self.headers = [tk.Label(self, text=_, font=EDIT_BODY_FONT, fg=EDIT_BODY_COLOR)
             for _ in [" ", "Blue"," ", "Red"," ", "Green"]]
         for i, each in enumerate(self.headers):
             each.grid(row=0, column=i)"""
 
-        self.label = Label(self, text=name, font=EDIT_BODY_FONT, fg=EDIT_BODY_COLOR, width=18)
+        self.label = tk.Label(self, text=name, font=EDIT_BODY_FONT, fg=EDIT_BODY_COLOR, width=18)
         self.label.grid(row=0, column=0)
 
         vcmd = (self.register(self.is_okay),'%P')
         for i in range(5):
             if i % 2 == 0:
-                w = Entry(self, width=6, validate="all", validatecommand=vcmd, font=EDIT_BODY_FONT, fg=CELL_COLORS[i/2])
+                w = tk.Entry(self, width=6, validate="all", validatecommand=vcmd, font=EDIT_BODY_FONT, fg=CELL_COLORS[i/2])
                 w.grid(row=0, column=i+1)
                 w.bind('<Return>', self.update_entries)
                 w.bind('<FocusOut>', self.if_editing)
                 self.pair_widgets.append(w)
             else:
-                colon = Label(self,text=":", font=EDIT_BODY_FONT, fg=EDIT_BODY_COLOR)
+                colon = tk.Label(self,text=":", font=EDIT_BODY_FONT, fg=EDIT_BODY_COLOR)
                 colon.grid(row=0, column=i+1)
 
         for i, size in enumerate([60,2,60,2,60]):
@@ -176,27 +183,27 @@ class RatioEditor(Frame):
     def set_value(self, values):
         for i in range(3):
             self.values[i] = self.round(values[i])
-            self.pair_widgets[i].delete(0,END)
+            self.pair_widgets[i].delete(0,tk.END)
             self.pair_widgets[i].insert(0,self.values[i])
 
     def get_value(self):
         self.update_entries()
         return self.values
 
-class QualitativeEditor(Frame):
+class QualitativeEditor(tk.Frame):
     """
     set_value : list
     """
     def __init__(self, parent, name, info, values):
-        Frame.__init__(self, parent)
+        tk.Frame.__init__(self, parent)
         choices = info["range"]
         self.name = name
-        self.label = Label(self,text=name, font=EDIT_BODY_FONT, fg=EDIT_BODY_COLOR, width=18)
+        self.label = tk.Label(self,text=name, font=EDIT_BODY_FONT, fg=EDIT_BODY_COLOR, width=18)
         self.label.grid(row=0, column=0)
 
-        self.choice = [StringVar() for _ in range(3)]
+        self.choice = [tk.StringVar() for _ in range(3)]
         self.choices = choices
-        self.menu = [OptionMenu(self, _, *__) for _, __ in zip(self.choice, choices)]
+        self.menu = [tk.OptionMenu(self, _, *__) for _, __ in zip(self.choice, choices)]
 
         for i, each in enumerate(self.menu):
             each.config(width=7, font=EDIT_BODY_FONT)
@@ -220,12 +227,12 @@ class QualitativeEditor(Frame):
     def get_value(self):
         return [_.get() for _ in self.choice]
 
-class MainParamEditor(Frame):
+class MainParamEditor(tk.Frame):
     """
     set_value(v) : float
     """
     def __init__(self, parent, text, info, value, length=150, width=20, font=None):
-        Frame.__init__(self, parent)
+        tk.Frame.__init__(self, parent)
         self.info = info
         if info["range"][1] != float("inf"):
             self.maxlen = [len(str(int(info["range"][1]))), info["roundto"]]
@@ -235,8 +242,8 @@ class MainParamEditor(Frame):
         resolution = info["resolution"]
         from_, to = info["range"]
         self.fit_into = lambda x: fit_into(x, from_, to)
-        self.scale = Scale(self, from_=from_, to=to,
-            resolution = resolution, orient=HORIZONTAL,
+        self.scale = tk.Scale(self, from_=from_, to=to,
+            resolution = resolution, orient=tk.HORIZONTAL,
             sliderlength=15,
             width=15,
             length=length,
@@ -244,11 +251,11 @@ class MainParamEditor(Frame):
             showvalue=0)
         self.scale.grid(row=0, column=2,padx=5)
 
-        self.label = Label(self,text=text, width=width)
+        self.label = tk.Label(self,text=text, width=width)
         self.label.grid(row=0, column=0)
 
         vcmd = (self.register(self.is_okay),'%P')
-        self.entry = Entry(self,width=6, validate="all", validatecommand=vcmd)
+        self.entry = tk.Entry(self,width=6, validate="all", validatecommand=vcmd)
         self.entry.grid(row=0, column=1)
         self.entry.bind('<Return>',self.update_scale)
         self.entry.bind('<FocusOut>',self.update_scale)
@@ -289,7 +296,7 @@ class MainParamEditor(Frame):
 
     def set_value(self,v):
         self.value = self.round(self.fit_into(v))
-        self.entry.delete(0,END)
+        self.entry.delete(0,tk.END)
         self.entry.insert(0,self.value)
         self.scale.set(self.value)
 
@@ -297,14 +304,14 @@ class MainParamEditor(Frame):
         self.update_scale()
         return self.value
 
-class CellParamEditor(Frame):
+class CellParamEditor(tk.Frame):
     """
     set_value(vals) : list
     """
     def __init__(self, parent, text, info, values):
-        Frame.__init__(self, parent)
+        tk.Frame.__init__(self, parent)
         self.cwidgets = [] #widgets for each color
-        self.label = Label(self, text=text, fg=EDIT_BODY_COLOR, font=EDIT_BODY_FONT, width=18)
+        self.label = tk.Label(self, text=text, fg=EDIT_BODY_COLOR, font=EDIT_BODY_FONT, width=18)
         self.label.grid(column=0, row=0, padx=0)
         info_copy = copy(info)
         for i, name in enumerate(CELL_TYPE_LABELS):
@@ -320,22 +327,22 @@ class CellParamEditor(Frame):
     def get_value(self):
         return [_.get_value() for _ in self.cwidgets]
 
-class InteractionParamEditor(Frame):
+class InteractionParamEditor(tk.Frame):
     def __init__(self, parent, text, info, values):
-        Frame.__init__(self, parent)
+        tk.Frame.__init__(self, parent)
         self.info = info
 
         #label
-        self.label = Label(self, text=text)
+        self.label = tk.Label(self, text=text)
         self.label.grid(row=0, column=0, columnspan=4, sticky="w")
 
         #header
         cell_types = CELL_TYPE_LABELS
-        self.header = [Label(self, text=_, fg=EDIT_BODY_COLOR, font=EDIT_COLOR_FONT) for _ in [""]+cell_types]
+        self.header = [tk.Label(self, text=_, fg=EDIT_BODY_COLOR, font=EDIT_COLOR_FONT) for _ in [""]+cell_types]
         for i, each in enumerate(self.header): each.grid(row=1, column=i, sticky="w")
 
         #body
-        self.row_headers = [Label(self, text=_, fg=EDIT_BODY_COLOR, font=EDIT_COLOR_FONT) for _ in cell_types]
+        self.row_headers = [tk.Label(self, text=_, fg=EDIT_BODY_COLOR, font=EDIT_COLOR_FONT) for _ in cell_types]
         self.entries = [[],[],[]]
         info_copy = copy(info)
         for i in range(3):
@@ -370,9 +377,9 @@ class InteractionParamEditor(Frame):
 
         return values
 
-class EditFrame(Frame):
+class EditFrame(tk.Frame):
     def __init__(self, parent, session, sim):
-        Frame.__init__(self, parent)
+        tk.Frame.__init__(self, parent)
         self.sim = sim
         self.session = session
         sim.bind("params", self.update_params, first=True)
@@ -384,12 +391,12 @@ class EditFrame(Frame):
         left_space = 8
 
         #Add Steps
-        self.steps_strvar = StringVar()
+        self.steps_strvar = tk.StringVar()
         self.update_step()
-        temp = Frame(self)
-        self.steps_label = Label(temp, textvariable=self.steps_strvar,
+        temp = tk.Frame(self)
+        self.steps_label = tk.Label(temp, textvariable=self.steps_strvar,
             anchor="w", bg=self.cget("bg"), fg=BODY_COLOR, font=BODY_FONT)
-        self.restart_button = Button(temp, text=u"\u21ba", command=self.restart, padx=5)
+        self.restart_button = tk.Button(temp, text=u"\u21ba", command=self.restart, padx=5)
         self.steps_label.grid(row=0, column=0, sticky="e")
         self.restart_button.grid(row=0, column=1, sticky="w")
         temp.grid(row=0, column=0, ipady=3, padx=(10,0), sticky="w")
@@ -401,7 +408,7 @@ class EditFrame(Frame):
 
         #main params
         self.pwidgets = {}
-        self.main_label = Label(self, text="Main Parameters")
+        self.main_label = tk.Label(self, text="Main Parameters")
         self.main_label.grid(columnspan=total_columns, sticky="w", padx=left_space,
             pady=(header_space,0))
 
@@ -411,7 +418,7 @@ class EditFrame(Frame):
             self.pwidgets[name].grid(columnspan=total_columns, padx=0)
 
         #cell params
-        self.cell_label = Label(self, text="Cell Parameters")
+        self.cell_label = tk.Label(self, text="Cell Parameters")
         self.cell_label.grid(columnspan=total_columns, sticky="w",
             pady=(header_space,0), padx=left_space)
 
@@ -428,7 +435,7 @@ class EditFrame(Frame):
                 self.pwidgets[name].grid(columnspan=total_columns, sticky="w")
 
         #interaction params
-        self.interaction_label = Label(self, text="Interaction Parameters")
+        self.interaction_label = tk.Label(self, text="Interaction Parameters")
         self.interaction_label.grid(columnspan=total_columns, sticky="w",
             pady=(header_space,0), padx=left_space)
         name = PARAM["interaction"][0]
@@ -441,9 +448,9 @@ class EditFrame(Frame):
             each.config(bg=self.cget("bg"),fg=HEADER_COLOR, font=HEADER_FONT)
 
         # Randomize and apply
-        temp = Frame(self)
-        self.randomize_button = Button(temp, text="Randomize", command=self.randomize, padx=BUTTON_X_MARGIN)
-        self.apply_button = Button(temp, text="Apply", command=self.apply, padx=BUTTON_X_MARGIN)
+        temp = tk.Frame(self)
+        self.randomize_button = tk.Button(temp, text="Randomize", command=self.randomize, padx=BUTTON_X_MARGIN)
+        self.apply_button = tk.Button(temp, text="Apply", command=self.apply, padx=BUTTON_X_MARGIN)
         self.randomize_button.grid(row=0,column=0, padx=(0,20))
         self.apply_button.grid(row=0, column=1)
         temp.grid(columnspan=2, pady=(20,4))
@@ -478,9 +485,9 @@ class EditFrame(Frame):
         self.sim.unbind("params", self.update_params)
         self.sim.unbind("step", self.update_step)
 
-class EditWindow(Frame):
+class EditWindow(tk.Frame):
     def __init__(self, parent, master, session, sim, graph_figsize=(5,5), property_figsize=(5,1.6), dpi=100):
-        Frame.__init__(self, master, height=693, width=844)
+        tk.Frame.__init__(self, master, height=693, width=844)
         self.grid_propagate(0)
         self.grid()
         self.master = master
@@ -505,7 +512,7 @@ class EditWindow(Frame):
         self.update_graph()
 
         #property
-        self.property_label = Label(self, text="Global Properties", fg=HEADER_COLOR, font=HEADER_FONT)
+        self.property_label = tk.Label(self, text="Global Properties", fg=HEADER_COLOR, font=HEADER_FONT)
 
         self.property_widget = PlotWidget(self, figsize=property_figsize, dpi=dpi)
         self.property_widget.large_plot()
@@ -516,8 +523,6 @@ class EditWindow(Frame):
         self.graph_widget.grid(column=1, row=0, padx=(0,8), pady=(8,0))
         self.property_label.grid(column=1, row=1, sticky="w", padx=(5,0), pady=0)
         self.property_widget.grid(column=1, row=2)
-
-
 
     def update_graph(self):
         self.graph_widget.plot_sim(self.session, self.sim, self.dots)
@@ -533,21 +538,3 @@ class EditWindow(Frame):
         self.edit_frame.unbind()
         self.master.destroy()
         self.parent.unfreeze()
-
-
-if __name__ == "__main__":
-    root = Tk()
-    from model.genetic import *
-    from common.parameters import PARAM_INFO
-    geno = GenoGenerator(PARAM_INFO)
-    pheno = PhenoGenerator()
-    simulation = Simulation(geno, pheno)
-    simulation.randomize()
-    class Nothing(object):
-        def __getattr__(self, key):
-            def do_nothing(*args):
-                pass
-            if key in ["inc_dpi"]:
-                return do_nothing
-    frame = EditWindow(None, root, Nothing(), Nothing(), simulation)
-    root.mainloop()

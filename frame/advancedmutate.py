@@ -1,21 +1,24 @@
-from Tkinter import *
+import Tkinter as tk
 import ttk
-from common.styles import *
-from common.tools import is_within, fit_into
-from common.parameters import *
 
-class MainParamCheckbutton(Frame):
+from common.parameters import PARAM
+from common.styles import (ADVANCED_MUTATE_FRAME_COLOR, BODY_COLOR, BODY_FONT,
+                           H2_COLOR, H2_FONT, HEADER_COLOR, HEADER_FONT)
+from common.tools import fit_into, is_within
+
+
+class MainParamCheckbutton(tk.Frame):
     def __init__(self, parent, text, command=None):
-        Frame.__init__(self, parent, bg=parent.cget("bg"))
+        tk.Frame.__init__(self, parent, bg=parent.cget("bg"))
         self.parent = parent
-        self.label = Label(self, text=text)
-        self.intvar = IntVar()
+        self.label = tk.Label(self, text=text)
+        self.intvar = tk.IntVar()
         self.intvar.set(1) #be deleted
         if command is None:
-            self.checkbutton = Checkbutton(self, variable=self.intvar,
+            self.checkbutton = tk.Checkbutton(self, variable=self.intvar,
             command=self.deselect)
         else:
-            self.checkbutton = Checkbutton(self, variable=self.intvar,
+            self.checkbutton = tk.Checkbutton(self, variable=self.intvar,
             command=command)
 
         self.label.grid(row=0, column=0, sticky="w")
@@ -41,7 +44,7 @@ class MainParamCheckbutton(Frame):
                 self.parent.check_all_button.set(1)
 
 
-class SingleEntry(Frame):
+class SingleEntry(tk.Frame):
     """
     Validation:
         Real-time: Can enter "", ".", or float
@@ -49,7 +52,7 @@ class SingleEntry(Frame):
             force input to be between ["from", "to"] and rounded
     """
     def __init__(self, parent, value=None):
-        Frame.__init__(self, parent, bg=parent.cget("bg"))
+        tk.Frame.__init__(self, parent, bg=parent.cget("bg"))
         self.value = value
         self.roundto = 2
         self.from_, self.to = 0., 1.
@@ -85,16 +88,16 @@ class SingleEntry(Frame):
 
     def set(self,v):
         self.value = round(fit_into(v, self.from_, self.to),self.roundto)
-        self.entry.delete(0,END)
+        self.entry.delete(0,tk.END)
         self.entry.insert(0,self.value)
 
     def get(self):
         self.check_value()
         return self.value
 
-class AdvancedMutateFrame(Frame):
+class AdvancedMutateFrame(tk.Frame):
     def __init__(self, parent, session):
-        Frame.__init__(self, parent, width=260, height=700, background=ADVANCED_MUTATE_FRAME_COLOR)
+        tk.Frame.__init__(self, parent, width=260, height=700, background=ADVANCED_MUTATE_FRAME_COLOR)
         self.grid_propagate(0)
         self.total_checks = 0
         self.session = session
@@ -103,12 +106,12 @@ class AdvancedMutateFrame(Frame):
         left_space = 8
         self.columnconfigure(0, weight=1)
         #title
-        self.title = Label(self, text="Advanced Settings", bg=self.cget("bg"), fg=H2_COLOR, font=H2_FONT)
+        self.title = tk.Label(self, text="Advanced Settings", bg=self.cget("bg"), fg=H2_COLOR, font=H2_FONT)
         self.title.grid(row=0, column=0, pady=5)
 
         # Mutation Rate
-        temp = Frame(self, bg=self.cget("bg"))
-        self.rate_label = Label(temp, text="Mutation rate:", bg=self.cget("bg"), fg=BODY_COLOR, font=BODY_FONT)
+        temp = tk.Frame(self, bg=self.cget("bg"))
+        self.rate_label = tk.Label(temp, text="Mutation rate:", bg=self.cget("bg"), fg=BODY_COLOR, font=BODY_FONT)
         self.rate_entry = SingleEntry(temp)
         temp.grid(padx=left_space, pady=(header_space/2,0), sticky="w")
         self.rate_label.grid(row=0,column=0, pady=0)
@@ -116,7 +119,7 @@ class AdvancedMutateFrame(Frame):
 
         #checkbuttons
         self.checkbuttons = {}
-        self.main_label = Label(self, text="Choose parameters to mutate:",
+        self.main_label = tk.Label(self, text="Choose parameters to mutate:",
             bg=self.cget("bg"), fg=HEADER_COLOR, font=HEADER_FONT)
         self.main_label.grid(sticky="w", padx=left_space,
             pady=(header_space/2, 10))
@@ -134,7 +137,7 @@ class AdvancedMutateFrame(Frame):
         self.widgets["rate"] = self.rate_entry
 
     def set_rate(self, val):
-        self.rate_entry.delete(0,END)
+        self.rate_entry.delete(0,tk.END)
         self.rate_entry.insert(0,val)
 
     def check_all(self):

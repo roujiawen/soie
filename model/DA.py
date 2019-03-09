@@ -1,6 +1,8 @@
-import numpy as np
-from math import pi, cos, sin, ceil, sqrt
 from collections import OrderedDict
+from math import ceil, cos, pi, sin, sqrt
+
+import numpy as np
+
 from common.tools import counts2slices
 
 if __name__ == "__main__":

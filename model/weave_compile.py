@@ -1,6 +1,7 @@
 import numpy as np
 from weave import ext_tools
 
+
 def weave_compile():
     #---------------------Specify variable types---------------------
     params = {'Gradient Intensity': [0.0, 0.0, 1.52],

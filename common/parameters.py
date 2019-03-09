@@ -25,7 +25,7 @@ PARAM= {
 PARAM_INFO = {
     "Cell Density" :
     {
-        "range" : [0.01,1.0],
+        "range" : [0.01,0.01],
         "min" : 0.01,
         "max" : 1.0,
         "resolution" : 0.01,

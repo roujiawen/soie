@@ -1,12 +1,14 @@
-import numpy as np
-from copy import deepcopy
-from model.DA import Model
-from common.parameters import GLOBAL_STATS_NAMES_INV
 import concurrent.futures
 import copy_reg
 import types
+from copy import deepcopy
 
-DEFAULT_STEPS = 20
+import numpy as np
+
+from common.parameters import GLOBAL_STATS_NAMES_INV
+from model.DA import Model
+
+DEFAULT_STEPS = 0
 
 
 

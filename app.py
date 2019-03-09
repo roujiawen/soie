@@ -1,22 +1,29 @@
-from Tkinter import *
-import ttk
-import tkMessageBox
-import tkFileDialog
-import os
 import datetime
+import os
+import tkFileDialog
+import Tkinter as tk
+import tkMessageBox
+import ttk
 from copy import copy, deepcopy
-from common.styles import *
-from common.parameters import GENERAL_SETTINGS, ADVANCED_MUTATE, GLOBAL_STATS_DISPLAY, EVOLVE_PROPERTY_SETTINGS, PARAM_INFO, GLOBAL_STATS_NAMES
+
+from common.io_utils import (delete_all_genes, load_session_data,
+                             save_session_data)
+from common.parameters import (ADVANCED_MUTATE, EVOLVE_PROPERTY_SETTINGS,
+                               GENERAL_SETTINGS, GLOBAL_STATS_DISPLAY,
+                               GLOBAL_STATS_NAMES, PARAM_INFO)
+from common.styles import APP_COLOR
 from common.tools import is_within
-from common.io_utils import delete_all_genes, save_session_data, load_session_data
-from frame.top import ButtonsFrame, MutateFrame, CrossFrame, InsertLibFrame, EvolvingFrame
-from frame.siminfo import SimInfoFrame
 from frame.advancedmutate import AdvancedMutateFrame
+from frame.siminfo import SimInfoFrame
 from frame.simulations import SimsFrame
+from frame.top import (ButtonsFrame, CrossFrame, EvolvingFrame, InsertLibFrame,
+                       MutateFrame)
 from menu.menubar import MenuBar
-from model.genetic import Population, GenoGenerator
+from model.genetic import GenoGenerator, Population
 
 RECORD_PATH = os.path.join(os.path.dirname(__file__), "customdata/record.py")
+INF = float("inf")
+
 
 class SessionData(object):
     """
@@ -42,14 +49,16 @@ class SessionData(object):
     which, func
     """
     def __init__(self):
-        self.data_names = ["general_settings", "param_info", "advanced_mutate", "global_stats_display", "evolve_property_settings"]
+        self.data_names = ["general_settings", "param_info", "advanced_mutate",
+                           "global_stats_display", "evolve_property_settings"]
         self.param_info = deepcopy(PARAM_INFO)
         self.general_settings = deepcopy(GENERAL_SETTINGS)
         self.global_stats_display = deepcopy(GLOBAL_STATS_DISPLAY)
         self.evolve_property_settings = deepcopy(EVOLVE_PROPERTY_SETTINGS)
         self.advanced_mutate = deepcopy(ADVANCED_MUTATE)
-        self.bindings = {"general_settings":[], "param_info":[], "vt":[],
-        "advanced_mutate":[], "global_stats_display": [], "evolve_property_settings": []}
+        self.bindings = {"general_settings": [], "param_info": [], "vt": [],
+                         "advanced_mutate": [], "global_stats_display": [],
+                         "evolve_property_settings": []}
 
     def unbind(self, attr, func):
         self.bindings[attr].remove(func)
@@ -101,9 +110,10 @@ class SessionData(object):
         return self.sf, self.pb, self.vt
 
 
-class App(Frame):
+class App(tk.Frame):
     def __init__(self, master=None):
-        Frame.__init__(self, master, background=APP_COLOR, width=978, height=727)
+        tk.Frame.__init__(self, master, background=APP_COLOR,
+                       width=978, height=727)
         self.master = master
         self.title = "Self-Organization Interactive Evolution"
         master.title(self.title)
@@ -113,38 +123,43 @@ class App(Frame):
         session = SessionData()
         self.session = session
 
-        #Population
+        # Population
         self.population = Population(session)
         sims = self.population.simulations
 
-        #RIGHT
+        # RIGHT
         self.advanced_mutate_frame = AdvancedMutateFrame(self, session)
-        self.info_default_steps_strvar = StringVar()
-        self.sim_info_frames = [SimInfoFrame(self, session, sims[_], self.info_default_steps_strvar) for _ in range(9)]
+        self.info_default_steps_strvar = tk.StringVar()
+        self.sim_info_frames = [
+            SimInfoFrame(self, session, sims[_],
+                         self.info_default_steps_strvar) for _ in range(9)]
         self.right_frames = self.sim_info_frames + [self.advanced_mutate_frame]
 
-        #BOTTOMLEFT
-        self.sims_frame = SimsFrame(self, session, sims, self.sim_info_frames, self.get_top_frame)
+        # BOTTOMLEFT
+        self.sims_frame = SimsFrame(
+            self, session, sims, self.sim_info_frames, self.get_top_frame)
 
         # Linking add_steps function
-        for sim, gframe in zip(self.population.simulations, self.sims_frame.graphs):
-            gframe.info_frame.steps_widget.func = sim.add_steps
+        for sim, g in zip(self.population.simulations, self.sims_frame.graphs):
+            g.info_frame.steps_widget.func = sim.add_steps
 
-        #TOP
-        self.buttons_frame = ButtonsFrame(self, session, new_pop_command=self.new_pop,
-                             mutate_command=self.mutate,
-                             cross_command=self.cross,
-                             add_command=self.population.add_steps_all)
+        # TOP
+        self.buttons_frame = ButtonsFrame(
+            self, session, new_pop_command=self.new_pop,
+            mutate_command=self.mutate, cross_command=self.cross,
+            add_command=self.population.add_steps_all)
 
-        self.mutate_frame = MutateFrame(self, session,
-            mutate_func=self.population.mutate, advanced_frame=self.advanced_mutate_frame)
-        self.cross_frame = CrossFrame(self, cross_func=self.population.crossover)
-        self.insert_lib_frame = InsertLibFrame(self, insert_func=self.population.insert_from_lib)
+        self.mutate_frame = MutateFrame(
+            self, session, mutate_func=self.population.mutate,
+            advanced_frame=self.advanced_mutate_frame)
+        self.cross_frame = CrossFrame(
+            self, cross_func=self.population.crossover)
+        self.insert_lib_frame = InsertLibFrame(
+            self, insert_func=self.population.insert_from_lib)
         self.evolving_frame = EvolvingFrame(self)
-        self.top_frames = [self.mutate_frame, self.cross_frame, self.insert_lib_frame, self.evolving_frame]
+        self.top_frames = [self.mutate_frame, self.cross_frame,
+                           self.insert_lib_frame, self.evolving_frame]
         self.current_top_frame = self.buttons_frame
-
-
 
         # menu bar
         def save_current_session():
@@ -177,12 +192,14 @@ class App(Frame):
 
             output_file_name = tkFileDialog.asksaveasfilename(
                 filetypes=[("JSON", "json")],
-                initialdir=os.path.join(os.path.dirname(__file__),'sessions'),
-                initialfile=datetime.datetime.now().strftime("Session_%m-%d-%Y_at_%I.%M%p")
+                initialdir=os.path.join(os.path.dirname(__file__), 'sessions'),
+                initialfile=datetime.datetime.now()
+                .strftime("Session_%m-%d-%Y_at_%I.%M%p")
             )
 
             if output_file_name != "":
-                session_data = {name:getattr(session, name) for name in session.data_names}
+                session_data = {name: getattr(session, name)
+                                for name in session.data_names}
                 session_data["model_data"] = model_data
                 save_session_data(output_file_name, session_data)
 
@@ -212,6 +229,7 @@ class App(Frame):
 
         def set_ratio(range_):
             which = "Cell Ratio"
+
             def func():
                 param_info = self.session.param_info
                 param_info[which]["range"] = range_
@@ -225,29 +243,33 @@ class App(Frame):
                     param_info[each]["range"] = [0, 0]
                 for each in nonzeros:
                     if param_info[each]["range"][1] == 0:
-                        param_info[each]["range"] = copy(PARAM_INFO[each]["range"])
+                        param_info[each]["range"] = copy(
+                            PARAM_INFO[each]["range"])
                 self.update_range_settings(param_info)
             return func
 
         def toggle_range():
             which = "Gradient Intensity"
             param_info = self.session.param_info
-            #if isinstance(param_info[which]["range"][0], list):
-            if all(param_info[which]["range"][i][1]==0 for i in xrange(3)):
-                param_info[which]["range"] = [[0.0, 2.0],[0.0, 2.0],[0.0, 2.0]]
+            # if isinstance(param_info[which]["range"][0], list):
+            if all(param_info[which]["range"][i][1] == 0 for i in range(3)):
+                param_info[which]["range"] = [[0., 2.], [0., 2.], [0., 2.]]
             else:
-                param_info[which]["range"] = [[0, 0],[0, 0],[0, 0]]
+                param_info[which]["range"] = [[0., 0.], [0., 0.], [0., 0.]]
 
             self.update_range_settings(param_info)
 
         def toggle_pinned_cells():
             which = "Pinned Cells"
             param_info = self.session.param_info
-            if all((len(param_info[which]["range"][i])==1) and
-                param_info[which]["range"][i][0]=="none" for i in xrange(3)):
-                param_info[which]["range"] = [["none", "random", "square", "circle", "ring"] for _ in xrange(3)]
+            if all((len(param_info[which]["range"][i]) == 1) and
+                    (param_info[which]["range"][i][0] == "none")
+                    for i in range(3)):
+                param_info[which]["range"] = [
+                    ["none", "random", "square", "circle", "ring"]
+                    for _ in range(3)]
             else:
-                param_info[which]["range"] = [["none"],["none"],["none"]]
+                param_info[which]["range"] = ["none"] * 3
             self.update_range_settings(param_info)
 
         def toggle_global_stats(which):
@@ -258,29 +280,35 @@ class App(Frame):
             return func
 
         menu_bar_commands = {
-        "Save Current Session": save_current_session,
-        "Save All Genes to Library": self.sims_frame.save_all,
-        "Clear Library": delete_all_genes,
-        ##############
-        "Show Velocity Trace": toggle_general("show_tail"),
-        "Every 1 Step":set_double("show_movement_value", "show_movement", 1),
-        "Every 5 Step":set_double("show_movement_value", "show_movement", 5),
-        "Every 10 Step":set_double("show_movement_value", "show_movement", 10),
-        "Turn Off":set_general("show_movement", 0),
-        "Zoom 0.5x":set_double("zoom_in_value", "zoom_in", 0.5),
-        "Zoom 1.0x":set_double("zoom_in_value", "zoom_in", 1.0),
-        "Zoom 2.0x":set_double("zoom_in_value", "zoom_in", 2.0),
-        "Periodic Boundary":toggle_general("periodic_boundary"),
-        ##############
-        "Interaction Force Only":toggle_forces(["Interaction Force"], ["Alignment Force"]),
-        "Alignment Force Only":toggle_forces(["Alignment Force"], ["Interaction Force"]),
-        "Enable Both Forces":toggle_forces(["Alignment Force", "Interaction Force"], []),
-        "Allow Gradient":toggle_range,
-        "Allow Pinned Cells":toggle_pinned_cells,
-        "Single Cell Type":set_ratio([float('inf'), float('inf'), 0., 0.]),
-        "Two Cell Types":set_ratio([0., float('inf'), 0., 0.]),
-        "Three Cell Types":set_ratio([0., float('inf'), 0., 1.]),
-        "Restore Default Settings":self.default_range_settings
+            "Save Current Session": save_current_session,
+            "Save All Genes to Library": self.sims_frame.save_all,
+            "Clear Library": delete_all_genes,
+            ##############
+            "Show Velocity Trace": toggle_general("show_tail"),
+            "Every 1 Step": set_double("show_movement_value",
+                                       "show_movement", 1),
+            "Every 5 Step": set_double("show_movement_value",
+                                       "show_movement", 5),
+            "Every 10 Step": set_double("show_movement_value",
+                                        "show_movement", 10),
+            "Turn Off": set_general("show_movement", 0),
+            "Zoom 0.5x": set_double("zoom_in_value", "zoom_in", 0.5),
+            "Zoom 1.0x": set_double("zoom_in_value", "zoom_in", 1.0),
+            "Zoom 2.0x": set_double("zoom_in_value", "zoom_in", 2.0),
+            "Periodic Boundary": toggle_general("periodic_boundary"),
+            ##############
+            "Interaction Force Only": toggle_forces(["Interaction Force"],
+                                                    ["Alignment Force"]),
+            "Alignment Force Only": toggle_forces(["Alignment Force"],
+                                                  ["Interaction Force"]),
+            "Enable Both Forces": toggle_forces(["Alignment Force",
+                                                 "Interaction Force"], []),
+            "Allow Gradient": toggle_range,
+            "Allow Pinned Cells": toggle_pinned_cells,
+            "Single Cell Type": set_ratio([float('inf'), float('inf'), 0., 0.]),
+            "Two Cell Types": set_ratio([0., float('inf'), 0., 0.]),
+            "Three Cell Types": set_ratio([0., float('inf'), 0., 1.]),
+            "Restore Default Settings": self.default_range_settings
         }
         ##############
         for i, each_name in enumerate(GLOBAL_STATS_NAMES):
@@ -417,6 +445,6 @@ class App(Frame):
 
 
 
-root = Tk()
+root = tk.Tk()
 app = App(root)
 root.mainloop()

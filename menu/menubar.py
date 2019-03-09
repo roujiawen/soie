@@ -1,16 +1,18 @@
 import os
-from Tkinter import *
 import tkFileDialog
-from menu.range import RangeSettingsWindow
-from menu.general import GeneralSettingsWindow
-from menu.evolve_property import EvolvePropertyWindow
-from menu.library import LibraryWindow
-from common.parameters import GLOBAL_STATS_NAMES
+import Tkinter as tk
 from copy import deepcopy
 
-class MenuBar(Menu):
+from common.parameters import GLOBAL_STATS_NAMES
+from menu.evolve_property import EvolvePropertyWindow
+from menu.general import GeneralSettingsWindow
+from menu.library import LibraryWindow
+from menu.range import RangeSettingsWindow
+
+
+class MenuBar(tk.Menu):
     def __init__(self, parent, session, master, menu_bar_commands):
-        Menu.__init__(self, master)
+        tk.Menu.__init__(self, master)
         self.parent = parent
         self.session = session
         session.bind("general_settings", self.update_general_options)
@@ -43,7 +45,7 @@ class MenuBar(Menu):
         ]
         options += ["Show "+each_name for each_name in GLOBAL_STATS_NAMES]
         options = [options[i/2] for i in range(len(options)*2-1,-1,-1)]
-        menu = Menu(self, tearoff=0)
+        menu = tk.Menu(self, tearoff=0)
         self.add_cascade(label="File", menu=menu)
         menu.add_command(label="Open Session...", command=self.open_session)
         menu.add_command(label="Open Gene from Library...", command=self.open_library)
@@ -54,17 +56,17 @@ class MenuBar(Menu):
         menu.add_command(label=options.pop(), command=menu_bar_commands[options.pop()])
 
         ##################GENERAL SETTINGS#######################
-        ints = self.general_intvars = {name:IntVar() for name in
+        ints = self.general_intvars = {name:tk.IntVar() for name in
             ["show_tail", "show_movement_value", "periodic_boundary", "zoom_in_value"]}
 
-        menu = Menu(self, tearoff=0)
+        menu = tk.Menu(self, tearoff=0)
         self.add_cascade(label="Control", menu=menu)
         menu.add_checkbutton(label=options.pop(), variable=ints["show_tail"], command=menu_bar_commands[options.pop()])
 
         menu.add_separator()
 
         # Show movement
-        submenu = Menu(menu, tearoff=0)
+        submenu = tk.Menu(menu, tearoff=0)
         menu.add_cascade(label="Show Movement", menu=submenu)
         steps=[1,5,10]
         for i in xrange(3):
@@ -94,10 +96,10 @@ class MenuBar(Menu):
         menu.add_command(label="Advanced...", command=self.open_general_settings)
 
         ############### Range Settings ################
-        ints = self.range_intvars = {name:IntVar() for name in
+        ints = self.range_intvars = {name:tk.IntVar() for name in
             ["force", "gradient", "pinned", "ntype"]}
 
-        menu = Menu(self, tearoff=0)
+        menu = tk.Menu(self, tearoff=0)
         self.add_cascade(label="Parameters", menu=menu)
         # Force Only
         for i in [0,1,-1]:
@@ -119,9 +121,9 @@ class MenuBar(Menu):
         menu.add_command(label="Adjust Ranges...", command=self.open_range_settings)
 
         ############### Global Stats Display ################
-        ints = self.global_stats_intvars = [IntVar() for _ in range(6)]
+        ints = self.global_stats_intvars = [tk.IntVar() for _ in range(6)]
 
-        menu = Menu(self, tearoff=0)
+        menu = tk.Menu(self, tearoff=0)
         self.add_cascade(label="Global Properties", menu=menu)
         for i in range(6):
             menu.add_checkbutton(label=options.pop(), variable=ints[i], command=menu_bar_commands[options.pop()])
@@ -129,7 +131,7 @@ class MenuBar(Menu):
         menu.add_separator()
         menu.add_command(label="Evolve by Property...", command=self.open_evolve_by_property)
         ############### Help & About ################
-        menu = Menu(self, tearoff=0)
+        menu = tk.Menu(self, tearoff=0)
         self.add_cascade(label="Help", menu=menu)
         menu.add_command(label="Help")
         menu.add_separator()
@@ -138,7 +140,7 @@ class MenuBar(Menu):
         master.config(menu=self)
 
     def open_library(self):
-        t = Toplevel(self.parent)
+        t = tk.Toplevel(self.parent)
         self.library_window = LibraryWindow(self.parent, t, self.parent.insert_lib)
         self.library_window.grid(padx=10, pady=5)
 
@@ -151,7 +153,7 @@ class MenuBar(Menu):
             self.parent.load_session(input_file_name)
 
     def open_general_settings(self):
-        t = Toplevel(self.parent)
+        t = tk.Toplevel(self.parent)
         self.general_settings_window = GeneralSettingsWindow(t, deepcopy(self.session.general_settings), self.parent.update_general_settings)
         self.general_settings_window.grid(padx=(40,10), pady=(20,5))
 
@@ -176,13 +178,13 @@ class MenuBar(Menu):
             self.general_intvars["zoom_in_value"].set(temp)
 
     def open_range_settings(self):
-        t = Toplevel(self.parent)
+        t = tk.Toplevel(self.parent)
         self.range_settings_window = RangeSettingsWindow(t, self.session)
         self.range_settings_window.grid(padx=10,pady=5)
 
     def update_range_options(self):
         """
-        ints = self.range_intvars = {name:IntVar() for name in
+        ints = self.range_intvars = {name:tk.IntVar() for name in
             ["force", "gradient", "pinned", "ntype"]}
         """
         param_info = self.session.param_info
@@ -218,13 +220,13 @@ class MenuBar(Menu):
         self.range_intvars["ntype"].set(ntype)
     def update_global_stats_options(self):
         """
-        ints = self.global_stats_intvars = [IntVar() for _ in range(6)]
+        ints = self.global_stats_intvars = [tk.IntVar() for _ in range(6)]
         """
         new = self.session.global_stats_display["show"]
         for i in range(6):
             if self.global_stats_intvars[i].get() != new[i]:
                 self.global_stats_intvars[i].set(new[i])
     def open_evolve_by_property(self):
-        t = Toplevel(self.parent)
+        t = tk.Toplevel(self.parent)
         self.evolve_property_window = EvolvePropertyWindow(t, deepcopy(self.session.evolve_property_settings), self.parent.evolve_by_property)
         self.evolve_property_window.grid(padx=(40,10), pady=(20,5))

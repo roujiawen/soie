@@ -1,26 +1,29 @@
-from Tkinter import *
-from common.styles import *
+import Tkinter as tk
+from copy import copy, deepcopy
+
 from common.parameters import PARAM
-from copy import deepcopy, copy
+from common.styles import (BODY_COLOR, BODY_FONT, CELL_TYPE_HEADER_COLOR,
+                           CELL_TYPE_HEADER_FONT, CELL_TYPE_LABELS,
+                           HEADER_COLOR, HEADER_FONT)
 
 BODY_LEFT_MARGIN = 30
 LABEL_WIDTH = 160
 
-class QualitativeRangeEditor(Frame):
+class QualitativeRangeEditor(tk.Frame):
     def __init__(self, parent, name, info):
-        Frame.__init__(self, parent)
+        tk.Frame.__init__(self, parent)
         self.name = name
         self.info = info
         self.all_choices = info["all_choices"]
-        self.label = Label(self, text=name, font=BODY_FONT, fg=BODY_COLOR)
+        self.label = tk.Label(self, text=name, font=BODY_FONT, fg=BODY_COLOR)
         self.label.grid(row=0, column=0, padx=(BODY_LEFT_MARGIN, 0), sticky="w")
 
         self.checks = [[],[],[]]
-        self.variables = [[IntVar() for _ in self.all_choices] for __ in range(3)]
+        self.variables = [[tk.IntVar() for _ in self.all_choices] for __ in range(3)]
 
         for i in range(3):
             for j, text in enumerate(self.all_choices):
-                self.checks[i].append(Checkbutton(self, text=text, font=BODY_FONT, fg=BODY_COLOR, variable=self.variables[i][j]))
+                self.checks[i].append(tk.Checkbutton(self, text=text, font=BODY_FONT, fg=BODY_COLOR, variable=self.variables[i][j]))
                 if text in info["range"][i]:
                     self.checks[i][j].select()
                 self.checks[i][j].grid(row=j, column=i+1, sticky="w", padx=(50,3))
@@ -44,9 +47,9 @@ class QualitativeRangeEditor(Frame):
                     new_range[i].append(name)
         return new_range
 
-class RatioRangeEditor(Frame):
+class RatioRangeEditor(tk.Frame):
     def __init__(self, parent, info, roundto=2):
-        Frame.__init__(self, parent)
+        tk.Frame.__init__(self, parent)
         self.roundto = roundto
         self.maxlen=[float("inf"), roundto]
         values = info["range"]
@@ -54,41 +57,41 @@ class RatioRangeEditor(Frame):
         self.values2 = values[2:]
         vcmd = (self.register(self.is_okay),'%P')
 
-        self.label1 = Label(self,text="Blue-Red Cell Ratio", font=BODY_FONT, fg=BODY_COLOR)
+        self.label1 = tk.Label(self,text="Blue-Red Cell Ratio", font=BODY_FONT, fg=BODY_COLOR)
         self.label1.grid(row=0, column=0, padx=(BODY_LEFT_MARGIN, 0), sticky="w")
         self.columnconfigure(0, minsize=LABEL_WIDTH)
 
-        self.min_label1 = Label(self, text="min:", font=BODY_FONT, fg=BODY_COLOR, width=10)
+        self.min_label1 = tk.Label(self, text="min:", font=BODY_FONT, fg=BODY_COLOR, width=10)
         self.min_label1.grid(row=0, column=1)
 
-        self.min_entry1 = Entry(self, width=6, validate="all", validatecommand=vcmd, font=BODY_FONT, fg=BODY_COLOR)
+        self.min_entry1 = tk.Entry(self, width=6, validate="all", validatecommand=vcmd, font=BODY_FONT, fg=BODY_COLOR)
         self.min_entry1.grid(row=0, column=2)
         self.min_entry1.bind('<Return>',self.min_update_entries1)
         self.min_entry1.bind('<FocusOut>',self.min_if_editing1)
 
-        self.max_label1 = Label(self, text="max:", font=BODY_FONT, fg=BODY_COLOR, width=10)
+        self.max_label1 = tk.Label(self, text="max:", font=BODY_FONT, fg=BODY_COLOR, width=10)
         self.max_label1.grid(row=0, column=3)
 
-        self.max_entry1 = Entry(self, width=6, validate="all", validatecommand=vcmd, font=BODY_FONT, fg=BODY_COLOR)
+        self.max_entry1 = tk.Entry(self, width=6, validate="all", validatecommand=vcmd, font=BODY_FONT, fg=BODY_COLOR)
         self.max_entry1.grid(row=0, column=4)
         self.max_entry1.bind('<Return>',self.max_update_entries1)
         self.max_entry1.bind('<FocusOut>',self.max_if_editing1)
 
-        self.label2 = Label(self,text="Green-Total Cell Ratio", font=BODY_FONT, fg=BODY_COLOR)
+        self.label2 = tk.Label(self,text="Green-Total Cell Ratio", font=BODY_FONT, fg=BODY_COLOR)
         self.label2.grid(row=1, column=0, padx=(BODY_LEFT_MARGIN, 0), sticky="w")
 
-        self.min_label2 = Label(self, text="min:", font=BODY_FONT, fg=BODY_COLOR, width=10)
+        self.min_label2 = tk.Label(self, text="min:", font=BODY_FONT, fg=BODY_COLOR, width=10)
         self.min_label2.grid(row=1, column=1)
 
-        self.min_entry2 = Entry(self, width=6, validate="all", validatecommand=vcmd, font=BODY_FONT, fg=BODY_COLOR)
+        self.min_entry2 = tk.Entry(self, width=6, validate="all", validatecommand=vcmd, font=BODY_FONT, fg=BODY_COLOR)
         self.min_entry2.grid(row=1, column=2)
         self.min_entry2.bind('<Return>',self.min_update_entries2)
         self.min_entry2.bind('<FocusOut>',self.min_if_editing2)
 
-        self.max_label2 = Label(self, text="max:", font=BODY_FONT, fg=BODY_COLOR, width=10)
+        self.max_label2 = tk.Label(self, text="max:", font=BODY_FONT, fg=BODY_COLOR, width=10)
         self.max_label2.grid(row=1, column=3)
 
-        self.max_entry2 = Entry(self, width=6, validate="all", validatecommand=vcmd, font=BODY_FONT, fg=BODY_COLOR)
+        self.max_entry2 = tk.Entry(self, width=6, validate="all", validatecommand=vcmd, font=BODY_FONT, fg=BODY_COLOR)
         self.max_entry2.grid(row=1, column=4)
         self.max_entry2.bind('<Return>',self.max_update_entries2)
         self.max_entry2.bind('<FocusOut>',self.max_if_editing2)
@@ -172,9 +175,9 @@ class RatioRangeEditor(Frame):
         min_, max_ = v[0], v[1]
         self.values1[0] = min_
         self.values1[1] = max_
-        self.min_entry1.delete(0,END)
+        self.min_entry1.delete(0,tk.END)
         self.min_entry1.insert(0, str(round(min_,self.roundto)))
-        self.max_entry1.delete(0,END)
+        self.max_entry1.delete(0,tk.END)
         self.max_entry1.insert(0, str(round(max_,self.roundto)))
 
     def min_if_editing2(self, event):
@@ -241,9 +244,9 @@ class RatioRangeEditor(Frame):
         min_, max_ = v[0], v[1]
         self.values2[0] = min_
         self.values2[1] = max_
-        self.min_entry2.delete(0,END)
+        self.min_entry2.delete(0,tk.END)
         self.min_entry2.insert(0,round(min_,self.roundto))
-        self.max_entry2.delete(0,END)
+        self.max_entry2.delete(0,tk.END)
         self.max_entry2.insert(0,round(max_,self.roundto))
 
     def last_update(self):
@@ -260,9 +263,9 @@ class RatioRangeEditor(Frame):
         self.last_update()
         return self.values1+self.values2
 
-class RangeEditor(Frame):
+class RangeEditor(tk.Frame):
     def __init__(self, parent, name, info, narrow=False):
-        Frame.__init__(self, parent)
+        tk.Frame.__init__(self, parent)
         self.name = name
         self.roundto = info["roundto"]
         self.values = info["range"]
@@ -280,7 +283,7 @@ class RangeEditor(Frame):
             self.lower_bound = 0.0
 
         if name is not None:
-            self.label = Label(self,text=name, font=BODY_FONT, fg=BODY_COLOR)
+            self.label = tk.Label(self,text=name, font=BODY_FONT, fg=BODY_COLOR)
             self.label.grid(row=0, column=0, padx=(BODY_LEFT_MARGIN, 0), sticky="w")
             self.columnconfigure(0, minsize=LABEL_WIDTH)
             starting_col = 1
@@ -289,10 +292,10 @@ class RangeEditor(Frame):
 
         vcmd = (self.register(self.is_okay),'%P')
 
-        self.min_label = Label(self, text="min:", font=BODY_FONT, fg=BODY_COLOR, width=10)
-        self.min_entry = Entry(self, width=6, validate="all", validatecommand=vcmd, font=BODY_FONT, fg=BODY_COLOR)
-        self.max_label = Label(self, text="max:", font=BODY_FONT, fg=BODY_COLOR, width=10)
-        self.max_entry = Entry(self, width=6, validate="all", validatecommand=vcmd, font=BODY_FONT, fg=BODY_COLOR)
+        self.min_label = tk.Label(self, text="min:", font=BODY_FONT, fg=BODY_COLOR, width=10)
+        self.min_entry = tk.Entry(self, width=6, validate="all", validatecommand=vcmd, font=BODY_FONT, fg=BODY_COLOR)
+        self.max_label = tk.Label(self, text="max:", font=BODY_FONT, fg=BODY_COLOR, width=10)
+        self.max_entry = tk.Entry(self, width=6, validate="all", validatecommand=vcmd, font=BODY_FONT, fg=BODY_COLOR)
         if narrow:
             for each in [self.min_label, self.min_entry, self.max_label, self.max_entry]:
                 each.config(width=5)
@@ -379,9 +382,9 @@ class RangeEditor(Frame):
     def set_values(self, v):
         self.values[0] = v[0]
         self.values[1] = v[1]
-        self.min_entry.delete(0,END)
+        self.min_entry.delete(0,tk.END)
         self.min_entry.insert(0,round(v[0],self.roundto))
-        self.max_entry.delete(0,END)
+        self.max_entry.delete(0,tk.END)
         self.max_entry.insert(0,round(v[1],self.roundto))
 
     def last_update(self):
@@ -395,11 +398,11 @@ class RangeEditor(Frame):
         self.last_update()
         return self.values
 
-class CellRangeEditor(Frame):
+class CellRangeEditor(tk.Frame):
     def __init__(self, parent, text, info):
-        Frame.__init__(self, parent)
+        tk.Frame.__init__(self, parent)
 
-        self.label = Label(self, text=text, bg=parent.cget("bg"))
+        self.label = tk.Label(self, text=text, bg=parent.cget("bg"))
         self.label.grid(row=0, column=0, padx=(BODY_LEFT_MARGIN, 0), sticky="w")
 
         self.types = []
@@ -425,22 +428,22 @@ class CellRangeEditor(Frame):
             new_range.append(each.get())
         return new_range
 
-class InteractionRangeEditor(Frame):
+class InteractionRangeEditor(tk.Frame):
     def __init__(self, parent, text, info):
-        Frame.__init__(self, parent)
+        tk.Frame.__init__(self, parent)
         #label
-        self.label = Label(self, text=text, fg=BODY_COLOR, font=BODY_FONT)
+        self.label = tk.Label(self, text=text, fg=BODY_COLOR, font=BODY_FONT)
         self.label.grid(row=0, column=0, columnspan=4, padx=(BODY_LEFT_MARGIN, 0), sticky="w")
 
         #header
-        self.header = [Label(self, text=_) for _ in [""]+CELL_TYPE_LABELS]
+        self.header = [tk.Label(self, text=_) for _ in [""]+CELL_TYPE_LABELS]
 
         for i, each in enumerate(self.header):
             each.config(font=CELL_TYPE_HEADER_FONT, fg=CELL_TYPE_HEADER_COLOR)
             each.grid(row=1, column=i)
 
         #body
-        self.row_headers = [Label(self, text=_, font=CELL_TYPE_HEADER_FONT, fg=CELL_TYPE_HEADER_COLOR) for _ in CELL_TYPE_LABELS]
+        self.row_headers = [tk.Label(self, text=_, font=CELL_TYPE_HEADER_FONT, fg=CELL_TYPE_HEADER_COLOR) for _ in CELL_TYPE_LABELS]
         temp_info = copy(info)
         self.entries = [[],[],[]]
         for i in range(3):
@@ -474,9 +477,9 @@ class InteractionRangeEditor(Frame):
                 new_range[i].append(self.entries[i][j].get())
         return new_range
 
-class RangeSettingsWindow(Frame):
+class RangeSettingsWindow(tk.Frame):
     def __init__(self, master, session):
-        Frame.__init__(self, master)
+        tk.Frame.__init__(self, master)
         self.master = master
         master.wm_title("Parameter Range")
         master.protocol('WM_DELETE_WINDOW', self.close)
@@ -490,7 +493,7 @@ class RangeSettingsWindow(Frame):
 
         #main params
         self.params = {}
-        self.main_label = Label(self, text="Main Parameters")
+        self.main_label = tk.Label(self, text="Main Parameters")
         self.main_label.grid(columnspan=total_columns, sticky="w", padx=left_space,
             pady=(header_space,0))
 
@@ -499,7 +502,7 @@ class RangeSettingsWindow(Frame):
             self.params[name].grid(columnspan=total_columns, sticky="we")
 
         #cell params
-        self.cell_label = Label(self, text="Cell Parameters")
+        self.cell_label = tk.Label(self, text="Cell Parameters")
         self.cell_label.grid(columnspan=total_columns, sticky="w",
             pady=(header_space,0), padx=left_space)
 
@@ -510,8 +513,8 @@ class RangeSettingsWindow(Frame):
                 self.params[name] = CellRangeEditor(self, name, info)
                 self.params[name].grid(columnspan=total_columns, sticky="we")
             elif info["type"] == "qualitative":
-                temp = Frame(self)
-                self.cell_types_headers = [Label(temp, text=_, font=CELL_TYPE_HEADER_FONT, fg=CELL_TYPE_HEADER_COLOR) for _ in [""]+CELL_TYPE_LABELS]
+                temp = tk.Frame(self)
+                self.cell_types_headers = [tk.Label(temp, text=_, font=CELL_TYPE_HEADER_FONT, fg=CELL_TYPE_HEADER_COLOR) for _ in [""]+CELL_TYPE_LABELS]
                 for i, each in enumerate(self.cell_types_headers):
                     each.grid(row=0, column=i)
                 temp.grid(columnspan=total_columns,sticky="we", pady=(10,0))
@@ -526,7 +529,7 @@ class RangeSettingsWindow(Frame):
                 self.params[name].grid(columnspan=total_columns, sticky="we")
 
         #interaction params
-        self.interaction_label = Label(self, text="Interaction Parameters")
+        self.interaction_label = tk.Label(self, text="Interaction Parameters")
         self.interaction_label.grid(columnspan=total_columns, sticky="w",
             pady=(header_space,0), padx=left_space)
         name = PARAM["interaction"][0]
@@ -538,9 +541,9 @@ class RangeSettingsWindow(Frame):
             each.config(bg=self.cget("bg"),fg=HEADER_COLOR, font=HEADER_FONT)
 
         #buttons
-        temp = Frame(self)
-        self.default_button = Button(temp, text="Default", width=7, command=self.default)
-        self.apply_button = Button(temp, text="Apply", width=7, command=self.apply)
+        temp = tk.Frame(self)
+        self.default_button = tk.Button(temp, text="Default", width=7, command=self.default)
+        self.apply_button = tk.Button(temp, text="Apply", width=7, command=self.apply)
         temp.grid(columnspan=2, sticky="e", padx=10, pady=(10,0))
         self.default_button.grid(row=0, column=0, sticky="e", padx=3)
         self.apply_button.grid(row=0, column=1, sticky="w", padx=3)

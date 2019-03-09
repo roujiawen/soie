@@ -1,10 +1,12 @@
-from Tkinter import *
-from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
+                                               NavigationToolbar2TkAgg)
 from matplotlib.collections import LineCollection
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+from matplotlib.figure import Figure
 from matplotlib.ticker import MaxNLocator
-from common.styles import *
+
+from common.styles import AXIS_LIMIT, CELL_ALPHA, CELL_COLORS
 from common.tools import counts2slices
+
 
 class PlotWidget(object):
     """
