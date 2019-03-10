@@ -17,7 +17,7 @@ Session data:
                  "global_stats": sim.global_stats,
                  "step": sim.step}
 
-    The functions `save_session_data` and `load_session_data` save and load
+    The functions ``save_session_data`` and ``load_session_data`` save and load
     session data respectively for a given file path.
 
 
@@ -41,11 +41,12 @@ Gene library data:
         }
     }
 
-    The function `random_string` generates identifiers for stored simulations.
-    `load_params` loads the json file from LIB_PARAMS_JSON_PATH. `delete_gene`
-    removes the information associated with a given gene (its png file and
-    related entries in the json file). `delete_all_genes` deletes everything.
-    `save_gene` saves a gene to files given its parameters and figure.
+    The function ``random_string`` generates identifiers for genes to be
+    stored. ``load_params`` loads the json file from LIB_PARAMS_JSON_PATH.
+    ``delete_gene`` removes the information associated with a given gene (its
+    png file and related entries in the json file). ``delete_all_genes``
+    deletes everything. ``save_gene`` saves a gene to files given its
+    parameters and figure.
 
 """
 import json
