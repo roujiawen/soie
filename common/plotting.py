@@ -38,7 +38,7 @@ class SimPlotWidget(object):
 
         """
         figsize = (5, 5) if large_size else (2.15, 2.15)
-        figure = Figure(figsize=figsize)
+        self.figure = figure = Figure(figsize=figsize)
         # Leave no margins
         figure.subplots_adjust(left=0, bottom=0, right=1, top=1)
         self.ax = figure.add_subplot(111)
