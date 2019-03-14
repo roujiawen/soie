@@ -101,7 +101,7 @@ class AMEntry(tk.Frame):
         widget_style.configure('TEntry', fg=BODY_COLOR, font=BODY_FONT)
 
         def is_okay(value):
-            """Validate whether entered value is permissibleself."""
+            """Validate whether entered value is permissible."""
             if value in ["", "."]:
                 # Allow empty string and single decimal point
                 return True
