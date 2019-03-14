@@ -14,7 +14,7 @@ from common.parameters import (ADVANCED_MUTATE, EVOLVE_PROPERTY_SETTINGS,
 from common.styles import APP_COLOR
 from common.tools import is_within
 from frame.advanced_mutate import AdvancedMutateFrame
-from frame.siminfo import SimInfoFrame
+from frame.sim_info import SimInfoFrame
 from frame.simulations import SimsFrame
 from frame.top import (ButtonsFrame, CrossFrame, EvolvingFrame, InsertLibFrame,
                        MutateFrame)
