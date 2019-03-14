@@ -22,8 +22,8 @@ class EWSingleEntry(tk.Entry):
     """A UI component containing an entry widget with validation.
 
     Methods:
-        set: Set the value (float) associated with the entry.
-        get: Get the value from the entry.
+        set_value: Set the value (float) associated with the entry box.
+        get_value: Get the value from the entry box.
 
 
     For Interaction Parameter
@@ -36,52 +36,72 @@ class EWSingleEntry(tk.Entry):
         """
         Parameters:
             parent (tk.Frame): The Tkinter parent of this widget.
+            info (dict): Contains specifications for the model parameter.
+            value: Initial value for the entry box.
 
         """
         tk.Entry.__init__(self, parent, width=6)
+        # Set the maximally allowed input length for before and after decimal
         if info["range"][1] != float("inf"):
             self.maxlen = [len(str(int(info["range"][1]))), info["roundto"]]
         else:
             self.maxlen = [float("inf"), info["roundto"]]
-        self.round = lambda x: round(x, info["roundto"])
-        vcmd = (self.register(self.is_okay),'%P')
-        self.config(validate="all", validatecommand=vcmd)
 
-        self.value = None
-        if "range" in info:
-            self.fit_into = lambda x: fit_into(x, *info["range"])
-        else:
-            self.fit_into = lambda x: fit_into(x, 0., float("inf"))
-        self.bind('<Return>',self.check_value)
-        self.bind('<FocusOut>',self.check_value)
-        self.set_value(value)
-
-    def is_okay(self, value):
-        if value in ["", "."]: return True
-        try:
-            float(value)
+        def is_okay(value):
+            """Validate whether entered value is permissible."""
+            if value in ["", "."]:
+                # Allow empty string and single decimal point
+                return True
+            try:
+                # Make sure the value can be converted to a valid float
+                float(value)
+            except ValueError:
+                return False
+            # Restrict the length of input before and after decimal
             splitted = value.split(".")
-            if any(len(splitted[i])>self.maxlen[i] for i in range(len(splitted))):
+            if any(len(splitted[i]) > self.maxlen[i]
+                   for i in range(len(splitted))):
                 return False
             return True
-        except:
-            return False
+        # Register validation function
+        vcmd = (self.register(is_okay), '%P')
+        self.config(validate="all", validatecommand=vcmd)
+        # If no range restriction is specified, at least must be possitive
+        if "range" in info:
+            self.fit_n_round = lambda x: round(fit_into(x, *info["range"]),
+                                               info["roundto"])
+        else:
+            self.fit_n_round = lambda x: round(fit_into(x, 0., float("inf")),
+                                               info["roundto"])
+        # Check and update value following these actions
+        self.bind('<Return>', self._check_value)
+        self.bind('<FocusOut>', self._check_value)
+        # Initiate value
+        self.value = 0.
+        self.set_value(value)
 
-    def check_value(self, event=None):
+    def _check_value(self, event=None):
+        """Make sure the newly entered value is a valid float, otherwise
+        revert to the last stored value."""
         try:
-            v = float(self.get())
-            self.set_value(v)
-        except:
+            # If input is a valid float, update stored value
+            value = float(self.get())
+            self.set_value(value)
+        except ValueError:
+            # Otherwise revert back
             self.set_value(self.value)
 
-    def set_value(self,v):
-        self.value = self.round(self.fit_into(v))
-        self.delete(0,tk.END)
-        self.insert(0,self.value)
+    def set_value(self, value):
+        """Update stored value and refresh display."""
+        self.value = self.fit_n_round(value)
+        self.delete(0, tk.END)
+        self.insert(0, self.value)
 
     def get_value(self):
-        self.check_value()
+        """Return stored value after checking that its validity."""
+        self._check_value()
         return self.value
+
 
 class EWRatioEditor(tk.Frame):
     """
