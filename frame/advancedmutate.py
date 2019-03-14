@@ -123,7 +123,7 @@ class AMEntry(tk.Frame):
         self.bind('<Return>', self._check_value)
         self.bind('<FocusOut>', self._check_value)
 
-    def _check_value(self):
+    def _check_value(self, event=None):
         """Make sure the newly entered value is a valid float, otherwise
         revert to the last stored value."""
         try:
