@@ -208,7 +208,7 @@ class PropertyPlotWidget(object):
         ax.legend(bbox_to_anchor=(0., 1.01, 1., .3), loc=3, ncol=3,
                   mode="expand", borderaxespad=0., fontsize=6, frameon=False)
         # If nothing displayed, defaults to reasonable axis limit
-        if not global_stats[0, :]:
+        if global_stats[0, :].size == 0:
             ax.set_ylim([-1., 1])
         self.canvas.draw()
 
