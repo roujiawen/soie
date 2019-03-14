@@ -4,10 +4,6 @@
 import Tkinter as tk
 from copy import copy
 
-from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
-                                               NavigationToolbar2TkAgg)
-from matplotlib.figure import Figure
-
 from common.parameters import PARAM, FIELD_SIZE
 from common.plotting import PropertyPlotWidget, SimPlotWidget
 from common.styles import (BODY_COLOR, BODY_FONT, BUTTON_X_MARGIN,
@@ -19,17 +15,15 @@ from frame.top import AddStepsWidget
 
 
 class EWSingleEntry(tk.Entry):
-    """A UI component containing an entry widget with validation.
+    """A UI component containing a single entry widget with validation.
 
     Methods:
         set_value: Set the value (float) associated with the entry box.
         get_value: Get the value from the entry box.
 
-
-    For Interaction Parameter
     Validation:
         Real-time: Can enter "", ".", or float
-        <Return> or <FocusOut>: If not float(empty), reverse; otherwise
+        <Return> or <FocusOut>: If not float, revert; otherwise
             force input to be between ["from", "to"] and rounded
     """
     def __init__(self, parent, info, value):
@@ -104,92 +98,119 @@ class EWSingleEntry(tk.Entry):
 
 
 class EWRatioEditor(tk.Frame):
-    """
+    """A UI component containing three entry widgets that allow the editing
+    of ratio parameters.
+
+    Methods:
+        set_value: Set the values (list of three floats) associated with the
+            entry boxes.
+        get_value: Get the values from the entry boxes.
+
     Validation:
-        Real-time: allows "" or "." or float
-
-    set_value : list
-
+        Real-time: Can enter "", ".", or float.
+        On <Return> or <FocusOut>: If not float, revert; otherwise
+            force input to be between ["from", "to"] and rounded.
     """
     def __init__(self, parent, name, info, values):
+        """
+        Parameters:
+            parent (tk.Frame): The Tkinter parent of this widget.
+            name (str): Name of the parameter to be displayed.
+            info (dict): Contains specifications for the model parameter.
+            value: Initial value for the entry box.
+
+        """
         tk.Frame.__init__(self, parent)
+        # Set the maximally allowed input length for before and after decimal
         if info["range"][1] != float("inf"):
             self.maxlen = [len(str(int(info["range"][1]))), info["roundto"]]
         else:
             self.maxlen = [float("inf"), info["roundto"]]
-        self.round = lambda x : round(x, info["roundto"])
+        # Create rounding function
+        self.round = lambda x: round(x, info["roundto"])
+        # Set restrictions on the ratios
         self.limits = info["range"]
-        self.values = [0]*3
-        self.pair_widgets = []
-
-        """self.headers = [tk.Label(self, text=_, font=EDIT_BODY_FONT, fg=EDIT_BODY_COLOR)
-            for _ in [" ", "Blue"," ", "Red"," ", "Green"]]
-        for i, each in enumerate(self.headers):
-            each.grid(row=0, column=i)"""
-
-        self.label = tk.Label(self, text=name, font=EDIT_BODY_FONT, fg=EDIT_BODY_COLOR, width=18)
+        # Make label
+        self.label = tk.Label(self, text=name, font=EDIT_BODY_FONT,
+                              fg=EDIT_BODY_COLOR, width=18)
         self.label.grid(row=0, column=0)
-
-        vcmd = (self.register(self.is_okay),'%P')
+        # Register validation function
+        vcmd = (self.register(self._is_okay), '%P')
+        # Make entry boxes and colons between each pair
+        self.widgets = []
         for i in range(5):
             if i % 2 == 0:
-                w = tk.Entry(self, width=6, validate="all", validatecommand=vcmd, font=EDIT_BODY_FONT, fg=CELL_COLORS[i/2])
-                w.grid(row=0, column=i+1)
-                w.bind('<Return>', self.update_entries)
-                w.bind('<FocusOut>', self.if_editing)
-                self.pair_widgets.append(w)
+                # Create entry boxes when i is an even number
+                widget = tk.Entry(
+                    self, width=6, validate="all", validatecommand=vcmd,
+                    font=EDIT_BODY_FONT, fg=CELL_COLORS[i/2])
+                widget.grid(row=0, column=i+1)
+                # Check and update value following these actions
+                widget.bind('<Return>', self._update_entries)
+                widget.bind('<FocusOut>', self._if_editing)
+                self.widgets.append(widget)
             else:
-                colon = tk.Label(self,text=":", font=EDIT_BODY_FONT, fg=EDIT_BODY_COLOR)
+                # Create colons when i is odd
+                colon = tk.Label(self, text=":",
+                                 font=EDIT_BODY_FONT, fg=EDIT_BODY_COLOR)
                 colon.grid(row=0, column=i+1)
-
-        for i, size in enumerate([60,2,60,2,60]):
+        # Set layout
+        for i, size in enumerate([60, 2, 60, 2, 60]):
             self.columnconfigure(i+1, minsize=size)
-
+        # Initiate values
+        self.values = [0]*3
         self.set_value(values)
 
-    def is_okay(self, value):
-        if value in ["", "."]: return True
-        try:
-            float(value)
-            splitted = value.split(".")
-            if any(len(splitted[i])>self.maxlen[i] for i in range(len(splitted))):
-                return False
+    def _is_okay(self, value):
+        """Validate whether entered value is permissible."""
+        if value in ["", "."]:
+            # Allow empty string and single decimal point
             return True
-        except:
+        try:
+            # Make sure the value can be converted to a valid float
+            float(value)
+        except ValueError:
             return False
+        # Restrict the length of input before and after decimal
+        splitted = value.split(".")
+        if any(len(splitted[i]) > self.maxlen[i]
+               for i in range(len(splitted))):
+            return False
+        return True
 
     @property
-    def widget_values(self):
+    def _widget_values(self):
         try:
-            return [float(_.get()) for _ in self.pair_widgets]
-        except:
+            return [float(_.get()) for _ in self.widgets]
+        except ValueError:
             return False
 
-    def reverse(self):
+    def _revert(self):
         self.set_value(self.values)
 
-    def first_step_check(self):
-        wvalues = self.widget_values
+    def _first_step_check(self):
+        wvalues = self._widget_values
         if not wvalues:
-            self.reverse()
+            self._revert()
             return "skip"
+        return None
 
-    def if_editing(self, event):
-        if self.focus_get() not in self.pair_widgets:
-            self.update_entries()
+    def _if_editing(self, event=None):
+        if self.focus_get() not in self.widgets:
+            self._update_entries()
         else:
-            self.first_step_check()
+            self._first_step_check()
 
-    def update_entries(self,event=None):
-        if self.first_step_check() == "skip":
+    def _update_entries(self, event=None):
+        if self._first_step_check() == "skip":
             return
-        wvalues = self.widget_values
-        s = float(sum(wvalues))
-        if s == 0:
-            self.reverse()
+        wvalues = self._widget_values
+        sum_ = float(sum(wvalues))
+        if sum_ == 0:
+            self._revert()
             return
         # Normalize
-        wvalues = [_/s for _ in wvalues]
+        wvalues = [_/sum_ for _ in wvalues]
         # Fit green ratio into limits
         green_min, green_max = self.limits[2], self.limits[3]
         wvalues[2] = self.round(fit_into(wvalues[2], green_min, green_max))
@@ -197,7 +218,8 @@ class EWRatioEditor(tk.Frame):
         if wvalues[1] == 0:
             ratio = self.limits[1]
         else:
-            ratio = fit_into(wvalues[0]/wvalues[1], self.limits[0], self.limits[1])
+            ratio = fit_into(wvalues[0]/wvalues[1],
+                             self.limits[0], self.limits[1])
         # Normalize the rest
         rest = 1 - wvalues[2]
         if ratio == float("inf"):
@@ -209,14 +231,17 @@ class EWRatioEditor(tk.Frame):
         self.set_value(wvalues)
 
     def set_value(self, values):
+        """Update stored values and refresh display."""
         for i in range(3):
             self.values[i] = self.round(values[i])
-            self.pair_widgets[i].delete(0,tk.END)
-            self.pair_widgets[i].insert(0,self.values[i])
+            self.widgets[i].delete(0, tk.END)
+            self.widgets[i].insert(0, self.values[i])
 
     def get_value(self):
-        self.update_entries()
+        """Return stored value after checking that its validity."""
+        self._update_entries()
         return self.values
+
 
 class EWQualitativeEditor(tk.Frame):
     """
