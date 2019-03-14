@@ -1,6 +1,8 @@
 import numpy as np
 from weave import ext_tools
 
+from common.parameters import N_GLOBAL_STATS
+
 
 def weave_compile():
     #---------------------Specify variable types---------------------
@@ -18,8 +20,7 @@ def weave_compile():
         'Velocity': [0.034, 0.016, 0.169],
         'Attraction-Repulsion Range': 10.2}
 
-    steps = 1
-    N_GLOBAL_STATS = 6
+    steps = 1s
     global_stats = np.zeros(N_GLOBAL_STATS * steps)
 
 

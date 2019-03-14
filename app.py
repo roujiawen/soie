@@ -21,7 +21,6 @@ from frame.top import (ButtonsFrame, CrossFrame, EvolvingFrame, InsertLibFrame,
 from menu.menubar import MenuBar
 from model.genetic import GenoGenerator, Population
 
-RECORD_PATH = os.path.join(os.path.dirname(__file__), "customdata/record.py")
 INF = float("inf")
 
 

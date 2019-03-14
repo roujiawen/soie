@@ -32,6 +32,11 @@ ADVANCED_MUTATE: the default values for the settings of advanced_mutate.
 
 """
 
+# TODO: add comments
+CORE_RADIUS = 0.1
+FIELD_SIZE = 10.0
+N_GLOBAL_STATS = 6
+
 PARAM = {
     "main": [
         "Cell Density",

@@ -2,17 +2,13 @@ from collections import OrderedDict
 from math import ceil, cos, pi, sin, sqrt
 
 import numpy as np
-
+from common.parameters import CORE_RADIUS, FIELD_SIZE, N_GLOBAL_STATS
 from common.tools import counts2slices
 
 if __name__ == "__main__":
     import c_code as c_model
 else:
     import model.c_code as c_model
-
-CORE_RADIUS = 0.1
-FIELD_SIZE = 10.0
-N_GLOBAL_STATS = 6
 
 class Model(object):
     def __init__(self, params, scale_factor=2., periodic_boundary=False):

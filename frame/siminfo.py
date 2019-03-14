@@ -2,7 +2,7 @@ import Tkinter as tk
 import ttk
 
 from common.parameters import PARAM
-from common.plotting import PlotWidget
+from common.plotting import PropertyPlotWidget
 from common.styles import (BODY_COLOR, BODY_FONT, CELL_TYPE_HEADER_COLOR,
                            CELL_TYPE_HEADER_FONT, CELL_TYPE_LABELS, H2_COLOR,
                            H2_FONT, HEADER_COLOR, HEADER_FONT,
@@ -147,7 +147,7 @@ class InteractionParamWidget(tk.Frame):
                 self.strvars[i][j].set(str(each))
 
 class SimInfoFrame(tk.Frame):
-    def __init__(self, parent, session, sim, strvar, figsize=(2.5, 1.3), dpi=100):
+    def __init__(self, parent, session, sim, strvar):
         tk.Frame.__init__(self, parent, background=SIM_INFO_FRAME_COLOR,
             highlightbackground="black", highlightcolor="black",
             highlightthickness=0, width=260, height=700)
@@ -181,8 +181,8 @@ class SimInfoFrame(tk.Frame):
         self.property_label = tk.Label(self, text="Global Properties")
         self.property_label.grid(columnspan=total_columns, sticky="w", padx=SIM_INFO_LEFT_SPACE,
             pady=(SIM_INFO_HEADER_SPACE,0))
-        self.property_plot = PlotWidget(self, figsize=figsize, dpi=dpi, bg=self.cget("bg"))
-        self.property_plot.small_plot()
+
+        self.property_plot = PropertyPlotWidget(self, bg=self.cget("bg"))
         self.property_plot.grid(columnspan=total_columns)
 
         #main params

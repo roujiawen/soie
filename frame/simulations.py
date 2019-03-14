@@ -2,8 +2,9 @@ import Tkinter as tk
 import tkMessageBox
 
 from common.io_utils import save_gene
-from common.plotting import PlotWidget
-from common.styles import (AXIS_LIMIT, EVOLVING_BORDER_COLOR, ON_CLICK_COLOR,
+from common.parameters import FIELD_SIZE
+from common.plotting import SimPlotWidget
+from common.styles import (EVOLVING_BORDER_COLOR, ON_CLICK_COLOR,
                            ON_HOVER_COLOR, ON_SELECT_COLOR, SIMS_FRAME_COLOR)
 from frame.editwindow import EditWindow
 
@@ -21,11 +22,7 @@ class GraphFrame(tk.Frame):
         self.state="NORMAL"
         self.double_clicked = False
 
-        scale_factor = session.sf
-        adjusted_limit = AXIS_LIMIT / scale_factor
-        self.widget = PlotWidget(self, figsize=figsize, dpi=dpi, no_edge=True, axis="off",
-            xlim=[0, adjusted_limit], ylim=[0, adjusted_limit])
-        self.dots = (figsize[0]*dpi)**2
+        self.widget = SimPlotWidget(self)
 
         highlight_thickness = 4
         self.widget.grid(pady=highlight_thickness, padx=highlight_thickness)
@@ -51,7 +48,7 @@ class GraphFrame(tk.Frame):
         #self.freeze()
 
     def update_graph(self):
-        self.widget.plot_sim(self.session, self.sim, self.dots)
+        self.widget.plot_sim(self.session, self.sim)
         self.update()
 
     def bind_(self):

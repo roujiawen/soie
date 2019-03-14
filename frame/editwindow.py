@@ -5,9 +5,9 @@ from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
                                                NavigationToolbar2TkAgg)
 from matplotlib.figure import Figure
 
-from common.parameters import PARAM
-from common.plotting import PlotWidget
-from common.styles import (AXIS_LIMIT, BODY_COLOR, BODY_FONT, BUTTON_X_MARGIN,
+from common.parameters import PARAM, FIELD_SIZE
+from common.plotting import PropertyPlotWidget, SimPlotWidget
+from common.styles import (BODY_COLOR, BODY_FONT, BUTTON_X_MARGIN,
                            CELL_COLORS, CELL_TYPE_LABELS, EDIT_BODY_COLOR,
                            EDIT_BODY_FONT, EDIT_COLOR_FONT, HEADER_COLOR,
                            HEADER_FONT)
@@ -506,16 +506,14 @@ class EditWindow(tk.Frame):
 
         #graph
         scale_factor = session.sf
-        adjusted_limit = AXIS_LIMIT / scale_factor
-        self.graph_widget = PlotWidget(self, figsize=graph_figsize, dpi=dpi, no_edge=True, axis="off", xlim=[0, adjusted_limit], ylim=[0, adjusted_limit])
-        self.dots = (graph_figsize[0]*dpi)**2
+        adjusted_limit = FIELD_SIZE / scale_factor
+        self.graph_widget = SimPlotWidget(self, large_size=True)
         self.update_graph()
 
         #property
         self.property_label = tk.Label(self, text="Global Properties", fg=HEADER_COLOR, font=HEADER_FONT)
 
-        self.property_widget = PlotWidget(self, figsize=property_figsize, dpi=dpi)
-        self.property_widget.large_plot()
+        self.property_widget = PropertyPlotWidget(self, large_size=True)
         self.update_global_stats()
 
 
@@ -525,7 +523,7 @@ class EditWindow(tk.Frame):
         self.property_widget.grid(column=1, row=2)
 
     def update_graph(self):
-        self.graph_widget.plot_sim(self.session, self.sim, self.dots)
+        self.graph_widget.plot_sim(self.session, self.sim)
 
     def update_global_stats(self):
         self.property_widget.plot_global_stats(self.session, self.sim)
