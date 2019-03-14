@@ -24,6 +24,9 @@ class SimPlotWidget(object):
         plot_sim: Plot simulation given a state.
         grid, bind, unbind: Pass function calls to the Tkinter widget object.
 
+    Attributes:
+        figure: the matplotlib.figure.Figure object containing the plot.
+
     """
     def __init__(self, parent, large_size=False):
         """
