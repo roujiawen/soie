@@ -353,7 +353,7 @@ class Population(object):
             self.add_steps_all(DEFAULT_STEPS)
         else:
             if trace_changed:
-                self.session.set("vt")
+                self.session.update("vt")
 
     def new_population(self):
         new_pop = self.geno_generator.new_population()
