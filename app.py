@@ -116,7 +116,7 @@ class App(tk.Frame):
         self.master = master
         self.title = "Self-Organization Interactive Evolution"
         master.title(self.title)
-        self.grid_propagate(0)
+        self.grid_propagate(False)
         self.grid()
 
         session = SessionData()

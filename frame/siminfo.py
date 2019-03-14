@@ -160,7 +160,7 @@ class SimInfoFrame(tk.Frame):
         sim.bind("step", self.update_step)
 
         self.default_steps_strvar = strvar
-        self.grid_propagate(0)
+        self.grid_propagate(False)
 
         total_columns = 2
         #title

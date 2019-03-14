@@ -488,7 +488,7 @@ class EditFrame(tk.Frame):
 class EditWindow(tk.Frame):
     def __init__(self, parent, master, session, sim, graph_figsize=(5,5), property_figsize=(5,1.6), dpi=100):
         tk.Frame.__init__(self, master, height=693, width=844)
-        self.grid_propagate(0)
+        self.grid_propagate(False)
         self.grid()
         self.master = master
         self.parent = parent
