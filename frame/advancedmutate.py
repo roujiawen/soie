@@ -75,7 +75,7 @@ class AMEntry(tk.Frame):
 
     Methods:
         set: Set the value (float) associated with the entry.
-        get: Get the value from the entry.
+        get: Get the value from the entry box.
 
     Validation:
         Real-time validation: allows "", ".", or float
