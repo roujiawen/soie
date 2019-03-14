@@ -18,7 +18,7 @@ from frame.sim_info import SimInfoFrame
 from frame.simulations import SimsFrame
 from frame.top import (ButtonsFrame, CrossFrame, EvolvingFrame, InsertLibFrame,
                        MutateFrame)
-from menu.menubar import MenuBar
+from menu.menu_bar import MenuBar
 from model.genetic import GenoGenerator, Population
 
 INF = float("inf")
