@@ -482,7 +482,7 @@ class RangeSettingsWindow(tk.Frame):
         tk.Frame.__init__(self, master)
         self.master = master
         master.wm_title("Parameter Range")
-        master.protocol('WM_DELETE_WINDOW', self.close)
+        master.protocol('WM_DELETE_WINDOW', self._close)
 
         self.session = session
         self.param_info = deepcopy(session.param_info)
@@ -548,7 +548,7 @@ class RangeSettingsWindow(tk.Frame):
         self.default_button.grid(row=0, column=0, sticky="e", padx=3)
         self.apply_button.grid(row=0, column=1, sticky="w", padx=3)
 
-    def close(self):
+    def _close(self):
         self.master.destroy()
 
     def set(self, new_settings):

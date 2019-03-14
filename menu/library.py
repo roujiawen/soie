@@ -118,7 +118,7 @@ class LibraryWindow(tk.Frame):
         self.parent = parent
         self.func = func
         master.wm_title("Gene Library")
-        master.protocol('WM_DELETE_WINDOW', self.close)
+        master.protocol('WM_DELETE_WINDOW', self._close)
 
         self.selected = None
         total_columns = 2
@@ -180,7 +180,7 @@ class LibraryWindow(tk.Frame):
 
         self.canvas_grid = CanvasGrid(self, images)
 
-    def close(self):
+    def _close(self):
         self.master.destroy()
 
     def open(self):

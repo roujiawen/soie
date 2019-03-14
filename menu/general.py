@@ -267,7 +267,7 @@ class GeneralSettingsWindow(tk.Frame):
         self.master = master
         self.func = func
         master.wm_title("Advanced Control")
-        master.protocol('WM_DELETE_WINDOW', self.close)
+        master.protocol('WM_DELETE_WINDOW', self._close)
 
         subframe_spacing=5
         indent = 25
@@ -361,7 +361,7 @@ class GeneralSettingsWindow(tk.Frame):
         else:
             self.zoom_in_editor.activate()
 
-    def close(self):
+    def _close(self):
         self.master.destroy()
 
     def set_values(self, settings):

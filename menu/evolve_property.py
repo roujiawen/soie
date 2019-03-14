@@ -13,7 +13,7 @@ class EvolvePropertyWindow(tk.Frame):
         self.master = master
         self.func = func
         master.wm_title("Evolve by Property")
-        master.protocol('WM_DELETE_WINDOW', self.close)
+        master.protocol('WM_DELETE_WINDOW', self._close)
 
         spacing=5
 
@@ -72,7 +72,7 @@ class EvolvePropertyWindow(tk.Frame):
         self.set_values(evolve_property_settings)
 
 
-    def close(self):
+    def _close(self):
         self.master.destroy()
 
     def set_values(self, settings):
