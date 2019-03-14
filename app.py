@@ -1,10 +1,7 @@
-"""This module contains the core parts of the GUI.
-
-``App`` is the top-level application window frame.
-``SessionData`` is a data management and binding system.
-
+"""This module contains the core parts of the GUI: ``App``, the top-level frame
+of this Tkinter application; ``SessionData``, a data management and binding
+system.
 """
-
 import datetime
 import os
 import tkFileDialog
@@ -30,87 +27,84 @@ from model.genetic import Population
 
 
 class SessionData(object):
-    """
+    """A data management and binding system. Data stored here are the
+    reference point for components across the application. Data can be bound
+    with commands, which get called whenever data changes.
 
-    GENERAL_SETTINGS = {
-        "show_tail" : 0,
-        "show_tail_value" : [5.0, 0.3],
-        "show_movement" : 0,
-        "show_movement_value" : 5,
-        "zoom_in" : 1, #0
-        "zoom_in_value" : 5.0, #2.0
-        "periodic_boundary" : 0
-    }
+    Methods:
+        bind, unbind: Link and unlink functions to data. When linked,
+            functions get called whenever the corresponding data changes.
+        update: Calling all linked functions associated with a data field.
+        set: Give new values to a data and call linked functions accordingly.
 
-    GLOBAL_STATS_DISPLAY = [1, 1, 1, 1, 1, 1]
-
-    set(attr, *args)
-    value
-    subattr, which, value
-
-    bind(attr, *args)
-    func
-    which, func
+    Attributes:
+        movement, vt, sf, pb, pheno_settings: Shortcuts for obtaining some
+            frequently used data.
     """
     def __init__(self):
+        # Create a list of names of data stored here
         self.data_names = ["general_settings", "param_info", "advanced_mutate",
                            "global_stats_display", "evolve_property_settings"]
-        self.param_info = deepcopy(PARAM_INFO)
+        # Initialize fields with default values
         self.general_settings = deepcopy(GENERAL_SETTINGS)
+        self.param_info = deepcopy(PARAM_INFO)
+        self.advanced_mutate = deepcopy(ADVANCED_MUTATE)
         self.global_stats_display = deepcopy(GLOBAL_STATS_DISPLAY)
         self.evolve_property_settings = deepcopy(EVOLVE_PROPERTY_SETTINGS)
-        self.advanced_mutate = deepcopy(ADVANCED_MUTATE)
+        # Create a dictionary that stores the functions to be called when
+        # the corresponding data changes
         self.bindings = {"general_settings": [], "param_info": [], "vt": [],
                          "advanced_mutate": [], "global_stats_display": [],
                          "evolve_property_settings": []}
 
-    def unbind(self, attr, func):
-        self.bindings[attr].remove(func)
-
     def bind(self, attr, func):
+        """Bind the given function to data."""
         self.bindings[attr].append(func)
 
+    def unbind(self, attr, func):
+        """Dissociate given function from given data."""
+        self.bindings[attr].remove(func)
+
     def update(self, attr):
+        """Call all bindings of a given data."""
         for each in self.bindings[attr]:
             each()
 
-    def set(self, attr, *args):
-        if len(args) == 0:
-            self.update(attr)
-            return
-
-        if len(args) == 1:
-            setattr(self, attr, args[0])
-            self.update(attr)
+    def set(self, attr, value):
+        """Update values of stored data and trigger bindings. All changes in
+        the session data are made through calling this method. No direct
+        mutation allowed."""
+        setattr(self, attr, value)
+        self.update(attr)
 
     @property
     def movement(self):
+        """Shortcut for obtaining the value of the show-movement setting."""
         return False if self.general_settings["show_movement"] == 0\
             else self.general_settings["show_movement_value"]
 
     @property
     def vt(self):
+        """Shortcut for obtaining the value of velocity trace."""
         if self.general_settings["show_tail"] == 0:
             return [0, 0]
-        else:
-            return self.general_settings["show_tail_value"]
+        return self.general_settings["show_tail_value"]
 
     @property
     def sf(self):
+        """Shortcut for obtaining the value of scale factor."""
         if self.general_settings["zoom_in"] == 0:
             return 1.0
-        else:
-            return self.general_settings["zoom_in_value"]
+        return self.general_settings["zoom_in_value"]
 
     @property
     def pb(self):
-        if self.general_settings["periodic_boundary"] == 1:
-            return True
-        else:
-            return False
+        """Shortcut for obtaining the value of periodic boundary setting."""
+        return self.general_settings["periodic_boundary"] == 1
 
     @property
     def pheno_settings(self):
+        """Shortcut for obtaining a tuple of the three properties above."""
         return self.sf, self.pb, self.vt
 
 
@@ -135,6 +129,7 @@ class App(tk.Frame):
         # Initiate Population object
         self.population = Population(session)
         # Make GUI parts
+        self.current_top_frame = None
         self._init_frames()
         self._init_menu_bar()
         self._set_layout()
@@ -296,8 +291,8 @@ class App(tk.Frame):
             which = "Pinned Cells"
             param_info = self.session.param_info
             if all((len(param_info[which]["range"][i]) == 1) and
-                    (param_info[which]["range"][i][0] == "none")
-                    for i in range(3)):
+                   (param_info[which]["range"][i][0] == "none")
+                   for i in range(3)):
                 param_info[which]["range"] = [
                     ["none", "random", "square", "circle", "ring"]
                     for _ in range(3)]
@@ -503,7 +498,8 @@ class App(tk.Frame):
         for each in self.session.data_names:
             self.session.update(each)
 
+
 # Launch a Tkinter application
-root = tk.Tk()
-app = App(root)
-root.mainloop()
+ROOT = tk.Tk()
+APP = App(ROOT)
+ROOT.mainloop()
