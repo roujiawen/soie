@@ -6,7 +6,7 @@ from common.parameters import FIELD_SIZE
 from common.plotting import SimPlotWidget
 from common.styles import (EVOLVING_BORDER_COLOR, ON_CLICK_COLOR,
                            ON_HOVER_COLOR, ON_SELECT_COLOR, SIMS_FRAME_COLOR)
-from frame.editwindow import EditWindow
+from frame.edit_window import EditWindow
 
 
 class GraphFrame(tk.Frame):
