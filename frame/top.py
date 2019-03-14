@@ -257,7 +257,6 @@ class InsertLibFrame(tk.Frame):
         self.update()
 
     def ok(self):
-
         self.insert_func(self.chosen_gene, [_.sim for _ in self.current_chosen])
         self.parent.expand_range_settings(self.chosen_gene)
         self.chosen_gene = None
@@ -269,10 +268,10 @@ class InsertLibFrame(tk.Frame):
 
     def check_all(self):
         if self.all_intvar.get() == 1:
-            self.parent.sims_frame.choose_all()
+            self.parent.frames["sims"].choose_all()
             self.reveal_button()
         else:
-            self.parent.sims_frame.clear_all_selection()
+            self.parent.frames["sims"].clear_all_selection()
             self.unreveal_button()
 
 
