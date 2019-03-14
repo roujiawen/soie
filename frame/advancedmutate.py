@@ -94,8 +94,9 @@ class AMEntry(tk.Frame):
         tk.Frame.__init__(self, parent, bg=parent.cget("bg"))
         self.value = 0.
         # Set number of decimal places and lower and upper bounds
-        self.roundto = 2
         self.lower, self.upper = 0., 1.
+        self.fit_n_round = lambda x: round(
+            fit_into(x, self.lower, self.upper), 2)
         # Configure ttk.entry widget style
         widget_style = ttk.Style()
         widget_style.configure('TEntry', fg=BODY_COLOR, font=BODY_FONT)
@@ -136,8 +137,8 @@ class AMEntry(tk.Frame):
 
     def set(self, value):
         """Update stored value and refresh display."""
-        self.value = round(fit_into(value, self.lower, self.upper),
-                           self.roundto)
+        self.value = self.fit_n_round(value)
+
         self.entry.delete(0, tk.END)
         self.entry.insert(0, self.value)
 
