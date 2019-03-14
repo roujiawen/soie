@@ -1,3 +1,6 @@
+"""This module contains EditWindow and its UI subcomponents.
+"""
+
 import Tkinter as tk
 from copy import copy
 
@@ -15,8 +18,14 @@ from common.tools import fit_into
 from frame.top import AddStepsWidget
 
 
-class SingleEntry(tk.Entry):
-    """
+class EWSingleEntry(tk.Entry):
+    """A UI component containing an entry widget with validation.
+
+    Methods:
+        set: Set the value (float) associated with the entry.
+        get: Get the value from the entry.
+
+
     For Interaction Parameter
     Validation:
         Real-time: Can enter "", ".", or float
@@ -24,6 +33,11 @@ class SingleEntry(tk.Entry):
             force input to be between ["from", "to"] and rounded
     """
     def __init__(self, parent, info, value):
+        """
+        Parameters:
+            parent (tk.Frame): The Tkinter parent of this widget.
+
+        """
         tk.Entry.__init__(self, parent, width=6)
         if info["range"][1] != float("inf"):
             self.maxlen = [len(str(int(info["range"][1]))), info["roundto"]]
@@ -41,9 +55,6 @@ class SingleEntry(tk.Entry):
         self.bind('<Return>',self.check_value)
         self.bind('<FocusOut>',self.check_value)
         self.set_value(value)
-
-    def update_range(self, from_, to):
-        self.fit_into = lambda x: fit_into(x, from_, to)
 
     def is_okay(self, value):
         if value in ["", "."]: return True
@@ -72,7 +83,7 @@ class SingleEntry(tk.Entry):
         self.check_value()
         return self.value
 
-class RatioEditor(tk.Frame):
+class EWRatioEditor(tk.Frame):
     """
     Validation:
         Real-time: allows "" or "." or float
@@ -126,9 +137,6 @@ class RatioEditor(tk.Frame):
             return True
         except:
             return False
-
-    def update_range(self, limits):
-        self.limits = limits
 
     @property
     def widget_values(self):
@@ -190,7 +198,7 @@ class RatioEditor(tk.Frame):
         self.update_entries()
         return self.values
 
-class QualitativeEditor(tk.Frame):
+class EWQualitativeEditor(tk.Frame):
     """
     set_value : list
     """
@@ -219,15 +227,10 @@ class QualitativeEditor(tk.Frame):
         for each, val in zip(self.choice,v):
             each.set(val)
 
-    def update_range(self, choices):
-        self.menu["menu"].delete(0, 'end')
-        for choice in choices:
-            self.menu["menu"].add_command(label=choice, command=lambda v=choice: self.choice.set(v))
-
     def get_value(self):
         return [_.get() for _ in self.choice]
 
-class MainParamEditor(tk.Frame):
+class EWMainParamEditor(tk.Frame):
     """
     set_value(v) : float
     """
@@ -278,11 +281,6 @@ class MainParamEditor(tk.Frame):
         except:
             return False
 
-    def update_range(self, from_, to):
-        self.fit_into = lambda x: fit_into(x, from_, to)
-        self.scale["from_"] = from_
-        self.scale["to"] = to
-
     def update_entry(self,event=None):
         f = float(self.scale.get())
         self.set_value(f)
@@ -304,7 +302,7 @@ class MainParamEditor(tk.Frame):
         self.update_scale()
         return self.value
 
-class CellParamEditor(tk.Frame):
+class EWCellParamEditor(tk.Frame):
     """
     set_value(vals) : list
     """
@@ -316,7 +314,7 @@ class CellParamEditor(tk.Frame):
         info_copy = copy(info)
         for i, name in enumerate(CELL_TYPE_LABELS):
             info_copy["range"] = info["range"][i]
-            w = MainParamEditor(self, name, info_copy, values[i], length=100, width=9, font=EDIT_COLOR_FONT)
+            w = EWMainParamEditor(self, name, info_copy, values[i], length=100, width=9, font=EDIT_COLOR_FONT)
             w.grid(column=1, row=i, padx=0)
             self.cwidgets.append(w)
 
@@ -327,7 +325,7 @@ class CellParamEditor(tk.Frame):
     def get_value(self):
         return [_.get_value() for _ in self.cwidgets]
 
-class InteractionParamEditor(tk.Frame):
+class EWInteractionParamEditor(tk.Frame):
     def __init__(self, parent, text, info, values):
         tk.Frame.__init__(self, parent)
         self.info = info
@@ -348,7 +346,7 @@ class InteractionParamEditor(tk.Frame):
         for i in range(3):
             for j in range(3-i):
                 info_copy["range"] = info["range"][i][j]
-                self.entries[i].append(SingleEntry(self, info_copy, values[i][i+j]))
+                self.entries[i].append(EWSingleEntry(self, info_copy, values[i][i+j]))
 
         for i in range(3):
             self.row_headers[i].grid(row=2+i, column=0, sticky="w")
@@ -414,7 +412,7 @@ class EditFrame(tk.Frame):
 
         for name in PARAM["main"]:
             #if name == "Angular Inertia":
-            self.pwidgets[name] = MainParamEditor(self, name, param_info[name], params[name])
+            self.pwidgets[name] = EWMainParamEditor(self, name, param_info[name], params[name])
             self.pwidgets[name].grid(columnspan=total_columns, padx=0)
 
         #cell params
@@ -425,13 +423,13 @@ class EditFrame(tk.Frame):
         for name in PARAM["cell"]:
             info = param_info[name]
             if "type" not in info:
-                self.pwidgets[name] = CellParamEditor(self, name, info, params[name])
+                self.pwidgets[name] = EWCellParamEditor(self, name, info, params[name])
                 self.pwidgets[name].grid(columnspan=total_columns, sticky="w")
             elif info["type"] == "ratio":
-                self.pwidgets[name] = RatioEditor(self, name, info, params[name])
+                self.pwidgets[name] = EWRatioEditor(self, name, info, params[name])
                 self.pwidgets[name].grid(columnspan=total_columns, sticky="w")
             elif info["type"] == "qualitative":
-                self.pwidgets[name] = QualitativeEditor(self, name, info, params[name])
+                self.pwidgets[name] = EWQualitativeEditor(self, name, info, params[name])
                 self.pwidgets[name].grid(columnspan=total_columns, sticky="w")
 
         #interaction params
@@ -439,7 +437,7 @@ class EditFrame(tk.Frame):
         self.interaction_label.grid(columnspan=total_columns, sticky="w",
             pady=(header_space,0), padx=left_space)
         name = PARAM["interaction"][0]
-        self.pwidgets[name] = InteractionParamEditor(self, name, param_info[name], params[name])
+        self.pwidgets[name] = EWInteractionParamEditor(self, name, param_info[name], params[name])
         self.pwidgets[name].grid(columnspan=total_columns)
 
 
