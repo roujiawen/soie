@@ -22,10 +22,11 @@ class SimPlotWidget(object):
 
     Methods:
         plot_sim: Plot simulation given a state.
-        grid, bind, unbind: Pass function calls to the Tkinter widget object.
+        grid, bind, unbind: Pass common Tkinter function calls to the Tkinter
+            widget object.
 
     Attributes:
-        figure: the matplotlib.figure.Figure object containing the plot.
+        figure: The matplotlib.figure.Figure object containing the plot.
 
     """
     def __init__(self, parent, large_size=False):
@@ -94,11 +95,11 @@ class SimPlotWidget(object):
                 x_pos[each_slice], y_pos[each_slice], s=adjusted_size,
                 color=CELL_COLORS[k], linewidths=0, alpha=CELL_ALPHA[k]
             )
-        self.update_axis_limits(scale_factor)
+        self._update_axis_limits(scale_factor)
         self.ax.axis('off')
         self.canvas.draw()
 
-    def update_axis_limits(self, scale_factor):
+    def _update_axis_limits(self, scale_factor):
         """Adjust limits of the plot according to scale factor."""
         adjusted_limit = FIELD_SIZE / scale_factor
         xlim = ylim = (0, adjusted_limit)
@@ -106,17 +107,17 @@ class SimPlotWidget(object):
         self.ax.set_ylim(ylim)
 
     def grid(self, *args, **kwargs):
-        """Pass .grid() function call to the Tkinter widget to simplify code.
+        """Pass .grid() function call to the Tkinter widget.
         """
         self.widget.grid(*args, **kwargs)
 
     def bind(self, *args, **kwargs):
-        """Pass .bind() function call to the Tkinter widget to simplify code.
+        """Pass .bind() function call to the Tkinter widget.
         """
         self.widget.bind(*args, **kwargs)
 
     def unbind(self, *args, **kwargs):
-        """Pass .unbind() function call to the Tkinter widget to simplify code.
+        """Pass .unbind() function call to the Tkinter widget.
         """
         self.widget.unbind(*args, **kwargs)
 
