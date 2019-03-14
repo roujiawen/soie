@@ -124,7 +124,7 @@ class GraphFrame(tk.Frame):
         self.parent.selected = self
         self.update_color()
 
-    def unselect(self):
+    def deselect(self):
         self.selected = False
         self.parent.selected = None
         self.update_color()
@@ -139,7 +139,7 @@ class GraphFrame(tk.Frame):
             self.parent.clear_all_selection()
 
         if self.selected:
-            self.unselect()
+            self.deselect()
             self.on_hover()
         else:
             self.select()
@@ -205,7 +205,7 @@ class SimsFrame(tk.Frame):
 
     def clear_all_selection(self):
         for each in self.graphs:
-            each.unselect()
+            each.deselect()
     def clear_info(self, new=None):
         if self.current_info == new: return
         if self.current_info is not None:

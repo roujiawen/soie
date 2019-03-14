@@ -171,7 +171,7 @@ class MenuBar(tk.Menu):
         # Zoom in Value
         temp = int(round(new["zoom_in_value"]*10))
         if new["zoom_in"] == 0:
-            # Deselect all except = 1.0
+            # deselect all except = 1.0
             self.general_intvars["zoom_in_value"].set(10)
         else:
             # If match
