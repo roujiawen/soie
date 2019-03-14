@@ -74,7 +74,7 @@ class AMEntry(tk.Frame):
     """A UI component containing an entry widget with validation.
 
     Methods:
-        set: Set the value (float) associated with the entry.
+        set: Set the value (float) associated with the entry box.
         get: Get the value from the entry box.
 
     Validation:
