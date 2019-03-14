@@ -150,8 +150,20 @@ class AMEntry(tk.Frame):
 
 class AdvancedMutateFrame(tk.Frame):
     """A frame that contains an input form allowing the user to configure the
-    advanced mutate settings."""
+    advanced mutate settings.
+
+    Methods:
+        set: Propagate provided values to UI subcomponents.
+        get: Get values from UI subcomponents.
+    """
     def __init__(self, parent, session):
+        """
+        Parameters:
+            parent (tk.Frame): The Tkinter parent of this widget.
+            session (SessionData): The object that stores application-level
+                data, parameters and settings.
+        
+        """
         tk.Frame.__init__(self, parent, width=260, height=700,
                           background=ADVANCED_MUTATE_FRAME_COLOR)
         self.session = session
