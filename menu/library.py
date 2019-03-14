@@ -140,7 +140,7 @@ class LibraryWindow(tk.Frame):
 
         def on_vertical(event):
             self.canvas.yview_scroll(-1 * event.delta, 'units')
-        self.canvas.bind_all('<MouseWheel>', on_vertical)
+        self.canvas.bind('<MouseWheel>', on_vertical)
 
         # Bottom Row Buttons
         self.open_button = tk.Button(self, text="Open", width=7, command=self.open, state=tk.DISABLED)
