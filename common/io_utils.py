@@ -89,7 +89,11 @@ def load_params(path):
 
 def delete_all_genes():
     """Remove all library data by deleting all png files and the json file."""
-    data = load_params(LIB_PARAMS_JSON_PATH)
+    try:
+        with open(LIB_PARAMS_JSON_PATH, "r") as infile:
+            data = json.load(infile)
+    except (IOError, ValueError):
+        return
     for gene_id in data["items"]:
         figure_path = os.path.join(LIB_PATH, "{}.png".format(gene_id))
         os.remove(figure_path)
@@ -99,8 +103,11 @@ def delete_all_genes():
 def delete_gene(gene_id):
     """Delete the png file associated a specific gene, and remove its entry
     from the json file."""
-    data = load_params(LIB_PARAMS_JSON_PATH)
-
+    try:
+        with open(LIB_PARAMS_JSON_PATH, "r") as infile:
+            data = json.load(infile)
+    except (IOError, ValueError):
+        return
     # Move up locations following the deleted spot
     flag = False
     for i in range(len(data["items"])):
