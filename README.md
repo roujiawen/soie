@@ -2,21 +2,24 @@
 
 SOIE is a GUI application written in Python and C++ for the interactive exploration of simulations of self-organizing active particles.
 
-## Installation
+## Installation Guide
 
 This software is written in [Python 2.7](https://www.python.org/downloads/release/python-2715/) and requires [pip](https://pip.pypa.io/en/stable/installing/) and [virtualenv](https://virtualenv.pypa.io/en/latest/installation/) to set up.
 
-1. **Check your Python version.** Type in command line:
+
+### Prerequisites
+* **Check your Python version.** Type in command line:
 ```bash
 python -V
 ```
-2. **Check that you have pip and virtualenv installed.** Type in command line:
+* **Check that you have pip and virtualenv installed.** Type in command line:
 ```bash
 pip --version
 virtualenv --version
 ```
 
-3. **Install SOIE dependencies in virtualenv.** Go into the root folder of SOIE, set up a virtual environment, and install dependencies through pip:
+### Installing
+* **Install SOIE dependencies in virtualenv.** Go into the root folder of SOIE, set up a virtual environment, and install dependencies through pip:
 ```bash
 cd [path to SOIE]
 virtualenv venv
@@ -28,13 +31,13 @@ where ```[path to SOIE]``` is the location of the downloaded SOIE code, for exam
 ## Usage
 If you have followed the installation guide, you are already inside a virtual environment. If that is the case,
 
-**Launch the application directly by typing in command line:**
+* **Launch the application directly by typing in command line:**
 ```bash
 python -m app
 ```
 Otherwise, 
 
-**Activate the virtual environment first, and then launch the application:**
+* **Activate the virtual environment first, and then launch the application:**
 ```bash
 source venv/bin/activate
 python -m app
