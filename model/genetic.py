@@ -8,7 +8,7 @@ import numpy as np
 from common.parameters import GLOBAL_STATS_NAMES_INV
 from model.DA import Model
 
-DEFAULT_STEPS = 0
+DEFAULT_STEPS = 20
 
 
 
