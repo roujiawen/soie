@@ -30,6 +30,8 @@ EVOLVE_PROPERTY_SETTINGS: the default values for evolve_property_settings.
 
 ADVANCED_MUTATE: the default values for the settings of advanced_mutate.
 
+DEFAULT_SESSION_DATA: a collection of default values for session data.
+
 """
 
 # TODO: add comments
@@ -194,3 +196,11 @@ EVOLVE_PROPERTY_SETTINGS = {
 
 ADVANCED_MUTATE = {_: 1 for _ in PARAM_INFO}
 ADVANCED_MUTATE["rate"] = 0.2
+
+DEFAULT_SESSION_DATA = {
+    "general_settings": GENERAL_SETTINGS,
+    "param_info": PARAM_INFO,
+    "advanced_mutate": ADVANCED_MUTATE,
+    "global_stats_display": GLOBAL_STATS_DISPLAY,
+    "evolve_property_settings": EVOLVE_PROPERTY_SETTINGS
+}

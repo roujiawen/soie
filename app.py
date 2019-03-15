@@ -1,6 +1,4 @@
-"""This module contains the core parts of the GUI: ``App``, the top-level frame
-of this Tkinter application; ``SessionData``, a data management and binding
-system.
+"""This module contains the core parts of the GUI: t
 """
 import datetime
 import os
@@ -12,8 +10,7 @@ from copy import copy, deepcopy
 
 from common.io_utils import (delete_all_genes, load_session_data,
                              save_session_data)
-from common.parameters import (ADVANCED_MUTATE, EVOLVE_PROPERTY_SETTINGS,
-                               GENERAL_SETTINGS, GLOBAL_STATS_DISPLAY,
+from common.parameters import (DEFAULT_SESSION_DATA,
                                GLOBAL_STATS_NAMES, PARAM_INFO)
 from common.styles import APP_COLOR
 from common.tools import is_within
@@ -46,11 +43,8 @@ class SessionData(object):
         self.data_names = ["general_settings", "param_info", "advanced_mutate",
                            "global_stats_display", "evolve_property_settings"]
         # Initialize fields with default values
-        self.general_settings = deepcopy(GENERAL_SETTINGS)
-        self.param_info = deepcopy(PARAM_INFO)
-        self.advanced_mutate = deepcopy(ADVANCED_MUTATE)
-        self.global_stats_display = deepcopy(GLOBAL_STATS_DISPLAY)
-        self.evolve_property_settings = deepcopy(EVOLVE_PROPERTY_SETTINGS)
+        for each in self.data_names:
+            setattr(self, each, deepcopy(DEFAULT_SESSION_DATA[each]))
         # Create a dictionary that stores the functions to be called when
         # the corresponding data changes
         self.bindings = {"general_settings": [], "param_info": [], "vt": [],
@@ -493,7 +487,13 @@ class App(tk.Frame):
         """
         session_data = load_session_data(input_file_name)
         for each in self.session.data_names:
-            setattr(self.session, each, session_data[each])
+            if each in session_data:
+                setattr(self.session, each, session_data[each])
+            else:
+                # Backward compatibility
+                setattr(self.session, each,
+                        deepcopy(DEFAULT_SESSION_DATA[each]))
+
         self.population.load_prev_session(session_data["model_data"])
         for each in self.session.data_names:
             self.session.update(each)
