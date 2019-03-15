@@ -29,7 +29,7 @@ class AddStepsWidget(tk.Frame):
         vcmd = (self.register(self.is_okay),'%P')
         self.v = tk.StringVar()
         self.v.set('20')
-        self.s = tk.Spinbox(self, width=3, from_=20, to=980, increment=20,
+        self.s = tk.Spinbox(self, width=5, from_=20, to=9980, increment=20,
             textvariable=self.v, validate="all",
             validatecommand=vcmd)
 
@@ -44,9 +44,9 @@ class AddStepsWidget(tk.Frame):
 
     def is_okay(self, value):
         if value == "": return True
-        if (len(value) > 3): return False
+        if (len(value) > 4): return False
         try:
-            if is_within(int(value), 0, 999): return True
+            if is_within(int(value), 0, 9999): return True
         except:
             pass
         return False

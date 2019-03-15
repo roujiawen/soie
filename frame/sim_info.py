@@ -24,7 +24,7 @@ class AddStepsWidget2(tk.Frame):
 
         s = ttk.Style()
         s.configure('TEntry', fg=BODY_COLOR, font=BODY_FONT)
-        self.entry = ttk.Entry(self, width=3,
+        self.entry = ttk.Entry(self, width=4,
             textvariable=self.value, validate="all",
             validatecommand=vcmd)
 
@@ -43,9 +43,9 @@ class AddStepsWidget2(tk.Frame):
 
     def is_okay(self, value):
         if value == "": return True
-        if (len(value) > 3): return False
+        if (len(value) > 4): return False
         try:
-            if is_within(int(value), 0, 999): return True
+            if is_within(int(value), 0, 9999): return True
         except:
             pass
         return False
