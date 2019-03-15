@@ -86,9 +86,8 @@ class SimPlotWidget(object):
                          (x_pos[j] - x_dir[j]*multiplier*species_velocity[k],
                           y_pos[j] - y_dir[j]*multiplier*species_velocity[k]))
                     )
-                    ln_coll = LineCollection(
-                        segs, colors=CELL_COLORS[k], linewidths=1, alpha=alpha
-                    )
+                ln_coll = LineCollection(segs, colors=CELL_COLORS[k],
+                                         linewidths=1, alpha=alpha)
                 self.ax.add_collection(ln_coll)
             # Plot particles themselves
             self.ax.scatter(
