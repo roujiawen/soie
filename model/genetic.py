@@ -8,7 +8,7 @@ import numpy as np
 from common.parameters import GLOBAL_STATS_NAMES_INV
 from model.DA import Model
 
-DEFAULT_STEPS = 20
+DEFAULT_STEPS = 0
 
 
 
@@ -87,7 +87,7 @@ class GenoGenerator(object):
     def randomize_d1_ratio(limits, res=2):
         r1r2_min, r1r2_max, r3_min, r3_max = limits
         # If no restrictions, return
-        if (r1r2_min==0.0) and (r1r2_max==float("inf")) and (r3_min=="0.0") and (r3_max=="1.0"):
+        if (r1r2_min==0.0) and (r1r2_max==float("inf")) and (r3_min==0.0) and (r3_max==1.0):
             return np.random.dirichlet((1, 1, 1)).tolist()
         r3 = round(r3_min + np.random.random()*(r3_max-r3_min), res)
         rest = 1 - r3
