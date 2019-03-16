@@ -268,10 +268,10 @@ class InsertLibFrame(tk.Frame):
 
     def check_all(self):
         if self.all_intvar.get() == 1:
-            self.parent.frames["sims"].choose_all()
+            self.parent.frames.sims.choose_all()
             self.reveal_button()
         else:
-            self.parent.frames["sims"].clear_all_selection()
+            self.parent.frames.sims.clear_all_selection()
             self.unreveal_button()
 
 
