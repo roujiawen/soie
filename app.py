@@ -10,8 +10,8 @@ from copy import copy, deepcopy
 
 from common.io_utils import (delete_all_genes, load_session_data,
                              save_session_data)
-from common.parameters import (DEFAULT_SESSION_DATA,
-                               GLOBAL_STATS_NAMES, PARAM_INFO)
+from common.parameters import (DEFAULT_SESSION_DATA, GLOBAL_STATS_NAMES,
+                               PARAM_INFO)
 from common.styles import APP_COLOR
 from common.tools import is_within
 from frame.advanced_mutate import AdvancedMutateFrame

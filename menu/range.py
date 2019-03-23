@@ -9,6 +9,7 @@ from common.styles import (BODY_COLOR, BODY_FONT, CELL_TYPE_HEADER_COLOR,
 BODY_LEFT_MARGIN = 30
 LABEL_WIDTH = 160
 
+
 class QualitativeRangeEditor(tk.Frame):
     def __init__(self, parent, name, info):
         tk.Frame.__init__(self, parent)

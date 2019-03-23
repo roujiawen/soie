@@ -35,6 +35,7 @@ DEFAULT_SESSION_DATA: a collection of default values for session data.
 """
 
 # TODO: add comments
+DEFAULT_STEPS = 20
 CORE_RADIUS = 0.1
 FIELD_SIZE = 10.0
 N_GLOBAL_STATS = 6

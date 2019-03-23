@@ -5,11 +5,8 @@ from copy import deepcopy
 
 import numpy as np
 
-from common.parameters import GLOBAL_STATS_NAMES_INV
+from common.parameters import GLOBAL_STATS_NAMES_INV, DEFAULT_STEPS
 from model.DA import Model
-
-DEFAULT_STEPS = 0
-
 
 
 def _pickle_method(method):
