@@ -44,8 +44,11 @@ python -m app
 ```
 
 ## Examples
-### Replicate the Vicsek model
-![Vicsek GIF](https://github.com/roujiawen/soie/blob/101a1bcb1122f2e3710564b5061178abff92f899/img/explore_vicsek.gif)
+### Replicating the Vicsek model
+![Vicsek GIF](https://github.com/roujiawen/soie/blob/master/img/explore_vicsek.gif)
+
+### Replicating the Social Differential Adhesion model
+![Social Differential Adhesion GIF](https://github.com/roujiawen/soie/blob/master/img/explore_social.gif)
 
 ## License
 [MIT License](https://choosealicense.com/licenses/mit/)
