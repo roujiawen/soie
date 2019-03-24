@@ -43,6 +43,21 @@ source venv/bin/activate
 python -m app
 ```
 
+## Tutorial
+
+### Applying genetic operators
+![Vicsek GIF](https://github.com/roujiawen/soie/blob/master/img/genetic_operators.gif)
+
+### Manually adjusting parameters
+![Vicsek GIF](https://github.com/roujiawen/soie/blob/master/img/edit_sim.gif)
+
+### Importing from library and adjusting display settings
+![Vicsek GIF](https://github.com/roujiawen/soie/blob/master/img/library_control.gif)
+
+### Changing permissible parameter range
+![Vicsek GIF](https://github.com/roujiawen/soie/blob/master/img/range.gif)
+
+
 ## Examples
 ### Replicating the Vicsek model
 ![Vicsek GIF](https://github.com/roujiawen/soie/blob/master/img/explore_vicsek.gif)
