@@ -2,7 +2,7 @@
 
 SOIE is a GUI application written in Python and C++ for the interactive exploration of simulations of self-organizing active particles.
 
-![Cover GIF](https://github.com/roujiawen/soie/blob/master/img/cover.gif)
+<img src="https://github.com/roujiawen/soie/blob/master/img/cover.gif" width="600"/>
 
 ## Installation Guide
 
@@ -48,24 +48,23 @@ python -m app
 ## Tutorial
 
 ### Applying genetic operators
-![Applying genetic operators GIF](https://github.com/roujiawen/soie/blob/master/img/genetic_operators.gif)
+<img src="https://github.com/roujiawen/soie/blob/master/img/genetic_operators.gif" width="600"/>
 
 ### Manually adjusting parameters
-![Manually adjusting parameters GIF](https://github.com/roujiawen/soie/blob/master/img/edit_sim.gif)
+<img src="https://github.com/roujiawen/soie/blob/master/img/edit_sim.gif" width="600"/>
 
 ### Importing from library and adjusting display settings
-![Importing from library and adjusting display settings GIF](https://github.com/roujiawen/soie/blob/master/img/library_control.gif)
+<img src="https://github.com/roujiawen/soie/blob/master/img/library_control.gif" width="600"/>
 
 ### Changing permissible parameter range
-![Changing permissible parameter range GIF](https://github.com/roujiawen/soie/blob/master/img/range.gif)
-
+<img src="https://github.com/roujiawen/soie/blob/master/img/range.gif" width="600"/>
 
 ## Examples
 ### Replicating the Vicsek model
-![Vicsek GIF](https://github.com/roujiawen/soie/blob/master/img/explore_vicsek.gif)
+<img src="https://github.com/roujiawen/soie/blob/master/img/explore_vicsek.gif" width="600"/>
 
 ### Replicating the Social Differential Adhesion model
-![Social Differential Adhesion GIF](https://github.com/roujiawen/soie/blob/master/img/explore_social.gif)
+<img src="https://github.com/roujiawen/soie/blob/master/img/explore_social.gif" width="600"/>
 
 ## License
 [MIT License](https://choosealicense.com/licenses/mit/)
