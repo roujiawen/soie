@@ -2,6 +2,8 @@
 
 SOIE is a GUI application written in Python and C++ for the interactive exploration of simulations of self-organizing active particles.
 
+![Cover GIF](https://github.com/roujiawen/soie/blob/master/img/cover.gif)
+
 ## Installation Guide
 
 This software is written in [Python 2.7](https://www.python.org/downloads/release/python-2715/) and requires [pip](https://pip.pypa.io/en/stable/installing/) and [virtualenv](https://virtualenv.pypa.io/en/latest/installation/) to set up.
@@ -46,16 +48,16 @@ python -m app
 ## Tutorial
 
 ### Applying genetic operators
-![Vicsek GIF](https://github.com/roujiawen/soie/blob/master/img/genetic_operators.gif)
+![Applying genetic operators GIF](https://github.com/roujiawen/soie/blob/master/img/genetic_operators.gif)
 
 ### Manually adjusting parameters
-![Vicsek GIF](https://github.com/roujiawen/soie/blob/master/img/edit_sim.gif)
+![Manually adjusting parameters GIF](https://github.com/roujiawen/soie/blob/master/img/edit_sim.gif)
 
 ### Importing from library and adjusting display settings
-![Vicsek GIF](https://github.com/roujiawen/soie/blob/master/img/library_control.gif)
+![Importing from library and adjusting display settings GIF](https://github.com/roujiawen/soie/blob/master/img/library_control.gif)
 
 ### Changing permissible parameter range
-![Vicsek GIF](https://github.com/roujiawen/soie/blob/master/img/range.gif)
+![Changing permissible parameter range GIF](https://github.com/roujiawen/soie/blob/master/img/range.gif)
 
 
 ## Examples
