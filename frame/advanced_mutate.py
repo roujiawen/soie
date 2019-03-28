@@ -16,7 +16,6 @@ class AMCheckbutton(tk.Frame):
     Methods:
         set: Set the value (either 0 or 1) associated with the checkbutton.
         get: Get the value associated with the checkbutton.
-
     """
     def __init__(self, parent, text, command=None):
         """
@@ -24,7 +23,6 @@ class AMCheckbutton(tk.Frame):
             parent (tk.Frame): The Tkinter parent of this widget.
             text (str): Text to be displayed next to the checkbutton.
             command (func): Function to be called when checkbutton is toggled.
-
         """
         # Same background color as the parent widget
         tk.Frame.__init__(self, parent, bg=parent.cget("bg"))
@@ -48,18 +46,16 @@ class AMCheckbutton(tk.Frame):
             each.config(bg=self.cget("bg"), fg=BODY_COLOR, font=BODY_FONT)
 
     def set(self, value):
-        """Pass the function call to the Tkinter IntVar object.
-        """
+        """Pass the function call to the Tkinter IntVar object."""
         self.intvar.set(value)
 
     def get(self):
-        """Pass the function call to the Tkinter IntVar object.
-        """
+        """Pass the function call to the Tkinter IntVar object."""
         return self.intvar.get()
 
     def _deselect(self):
         """Turn the checkbutton off and update the 'All' button when
-            necessary."""
+        necessary."""
         if self.get() == 0:
             self.parent.check_all_button.set(0)
             self.parent.total_checks -= 1
@@ -162,7 +158,7 @@ class AdvancedMutateFrame(tk.Frame):
             parent (tk.Frame): The Tkinter parent of this widget.
             session (SessionData): The object that stores application-level
                 data, parameters and settings.
-        
+
         """
         tk.Frame.__init__(self, parent, width=260, height=700,
                           background=ADVANCED_MUTATE_FRAME_COLOR)
