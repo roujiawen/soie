@@ -34,10 +34,13 @@ DEFAULT_SESSION_DATA: a collection of default values for session data.
 
 """
 
-# TODO: add comments
+# Default number of steps to run after creating a new model
 DEFAULT_STEPS = 20
+# Radius of the particles's hard core in the simulation
 CORE_RADIUS = 0.1
+# Linear size of the arena of the simulation
 FIELD_SIZE = 10.0
+# Number of global properties (order parameters)
 N_GLOBAL_STATS = 6
 
 PARAM = {
@@ -63,7 +66,7 @@ PARAM = {
 PARAM_INFO = {
     "Cell Density":
     {
-        "range": [0.01, 1.00],
+        "range": [0.01, 0.01],
         "min": 0.01,
         "max": 1.0,
         "resolution": 0.01,
