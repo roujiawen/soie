@@ -300,7 +300,7 @@ def weave_compile():
             rel_pos_y = pos_y[i] - cm_y;
             stat_angular += rel_pos_x * dir_y[i] - rel_pos_y * dir_x[i];
           }
-          global_stats[ith_step] = stat_angular / eff_nop;
+          global_stats[ith_step] = abs(stat_angular) / eff_nop;
 
           // ORDER PARAMETER (1*steps+ith_step)
           global_stats[steps + ith_step] = sqrt(pow(stat_align_x, 2) +
@@ -570,7 +570,7 @@ def weave_compile():
             rel_pos_y = pb_dist(cm_y, pos_y[i], size_y);
             stat_angular += rel_pos_x * dir_y[i] - rel_pos_y * dir_x[i];
           }
-          global_stats[ith_step] = stat_angular / eff_nop;
+          global_stats[ith_step] = abs(stat_angular) / eff_nop;
 
           // ORDER PARAMETER (1*steps+ith_step)
           global_stats[steps + ith_step] = sqrt(pow(stat_align_x, 2) +
