@@ -21,7 +21,7 @@ virtualenv --version
 ```
 
 ### Installing
-* **Install SOIE dependencies in virtualenv.** Go into the root folder of SOIE, set up a virtual environment, and install dependencies through pip:
+* **Install SOIE dependencies in virtualenv.** In command line, go into the root folder of SOIE, set up a virtual environment, and install dependencies through pip:
 ```bash
 cd [path to SOIE]
 virtualenv venv
@@ -29,6 +29,11 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 where ```[path to SOIE]``` is the location of the downloaded SOIE code, for example, ```~/Downloads/soie-master```.
+
+* **Compile simulation program.** Run this in command line:
+```bash
+python -m model.weave_compile
+```
 
 ## Usage
 If you have followed the installation guide, you are already inside a virtual environment. If that is the case,
