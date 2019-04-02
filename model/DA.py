@@ -8,7 +8,7 @@ import numpy as np
 
 from common.parameters import CORE_RADIUS, FIELD_SIZE, N_GLOBAL_STATS
 from common.tools import counts2slices
-import model.c_code as c_model
+import c_code as c_model
 
 
 class Model(object):
