@@ -30,11 +30,6 @@ pip install -r requirements.txt
 ```
 where ```[path to SOIE]``` is the location of the downloaded SOIE code, for example, ```~/Downloads/soie-master```.
 
-* **Compile simulation program.** Run this in command line:
-```bash
-python -m model.weave_compile
-```
-
 ## Usage
 If you have followed the installation guide, you are already inside a virtual environment. If that is the case,
 
