@@ -8,6 +8,8 @@ import tkMessageBox
 from argparse import Namespace
 from copy import copy, deepcopy
 
+import numpy as np
+
 from common.io_utils import (delete_all_genes, load_session_data,
                              save_session_data)
 from common.parameters import (DEFAULT_SESSION_DATA, GLOBAL_STATS_NAMES,
@@ -176,7 +178,7 @@ class App(tk.Frame):
     def _init_menu_bar(self):
         session = self.session
 
-        def save_current_session():
+        def _save_current_session():
             """Save session data including general_settings, param_info,
             advanced_mutate and model_data.
 
@@ -223,6 +225,34 @@ class App(tk.Frame):
                 save_session_data(output_file_name, session_data)
                 # Show success message
                 tkMessageBox.showinfo("", "Current session has been saved!")
+
+        def _save_global_stats():
+            """Save global properties to a csv file."""
+            sims = self.frames.sims
+            if (sims.selected) and (sims.mode=="view"):
+                global_stats = sims.selected.sim.global_stats
+            else:
+                tkMessageBox.showwarning(
+                    "",
+                    "Please select one model!"
+                )
+                return
+            # Open dialog and ask the user to input filename to save as
+            output_file_name = tkFileDialog.asksaveasfilename(
+                filetypes=[("CSV", "csv")],
+                initialdir=os.path.dirname(__file__),
+                initialfile=datetime.datetime.now()
+                .strftime("Stats_%m-%d-%Y_at_%I.%M%p")  # Default name
+            )
+            # If filename not empty (or when dialog is cancelled)
+            if output_file_name != "":
+                np.savetxt(output_file_name, global_stats.transpose(),
+                           delimiter=",", comments="",
+                           header=",".join(GLOBAL_STATS_NAMES)+"\n")
+                tkMessageBox.showinfo(
+                    "",
+                    "Global properties for this model have been saved!"
+                )
 
         """The following is a set of functions that link the shortcut buttons
         on the menu bar to the update of ``general_settings``.
@@ -305,8 +335,9 @@ class App(tk.Frame):
         # into the construction MenuBar frame.
         menu_bar_commands = {
             # Under "File" menu
-            "Save Current Session": save_current_session,
+            "Save Current Session": _save_current_session,
             "Save All Genes to Library": self.frames.sims.save_all,
+            "Save Global Properties": _save_global_stats,
             "Clear Library": delete_all_genes,
             # Under "Control" menu
             "Show Velocity Trace": _toggle_general("show_tail"),
@@ -497,6 +528,7 @@ class App(tk.Frame):
         self.population.load_prev_session(session_data["model_data"])
         for each in self.session.data_names:
             self.session.update(each)
+
 
 
 # Launch a Tkinter application

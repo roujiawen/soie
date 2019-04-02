@@ -21,6 +21,7 @@ class MenuBar(tk.Menu):
         options = [
             "Save Current Session",
             "Save All Genes to Library",
+            "Save Global Properties",
             "Clear Library",
             ##########
             "Show Velocity Trace",
@@ -50,7 +51,7 @@ class MenuBar(tk.Menu):
         menu.add_command(label="Open Session...", command=self.open_session)
         menu.add_command(label="Open Gene from Library...", command=self.open_library)
         menu.add_separator()
-        for i in range(2):
+        for i in range(3):
             menu.add_command(label=options.pop(), command=menu_bar_commands[options.pop()])
         menu.add_separator()
         menu.add_command(label=options.pop(), command=menu_bar_commands[options.pop()])
