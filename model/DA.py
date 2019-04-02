@@ -8,8 +8,12 @@ import numpy as np
 
 from common.parameters import CORE_RADIUS, FIELD_SIZE, N_GLOBAL_STATS
 from common.tools import counts2slices
-import c_code as c_model
-
+try:
+    import c_code as c_model
+except ImportError:
+    from model.weave_compile import weave_compile
+    weave_compile()
+    import c_code as c_model
 
 class Model(object):
     """A model for a system of self-propelled particles.
