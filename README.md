@@ -1,6 +1,6 @@
 # Self-organization Interactive Evolution (SOIE)
 
-SOIE is a GUI application written in Python and C++ for the interactive exploration of simulations of self-organizing active particles.
+SOIE is a GUI application written in Python and C++ for the interactive exploration of simulations of self-organizing active particles. The associated paper is [here](https://www.roujiawen.com/portfolio/pdfs/interactive_evolution.pdf).
 
 <img src="https://github.com/roujiawen/soie_gifs/blob/master/cover.gif" width="600"/>
 
