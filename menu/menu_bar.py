@@ -3,6 +3,7 @@ import tkFileDialog
 import Tkinter as tk
 from copy import deepcopy
 
+from common.io_utils import load_from_files
 from common.parameters import GLOBAL_STATS_NAMES
 from menu.evolve_property import EvolvePropertyWindow
 from menu.general import GeneralSettingsWindow
@@ -50,6 +51,7 @@ class MenuBar(tk.Menu):
         self.add_cascade(label="File", menu=menu)
         menu.add_command(label="Open Session...", command=self.open_session)
         menu.add_command(label="Open Gene from Library...", command=self.open_library)
+        menu.add_command(label="Open Gene from Files...", command=self.open_from_files)
         menu.add_separator()
         for i in range(3):
             menu.add_command(label=options.pop(), command=menu_bar_commands[options.pop()])
@@ -139,6 +141,14 @@ class MenuBar(tk.Menu):
         menu.add_command(label="About")
 
         master.config(menu=self)
+
+    def open_from_files(self):
+        input_file_name = tkFileDialog.askopenfilename(
+            filetypes=[("JSON", "json")]
+            )
+        if input_file_name != "":
+            params = load_from_files(input_file_name)
+            self.parent.insert_lib(params)
 
     def open_library(self):
         t = tk.Toplevel(self.parent)

@@ -53,8 +53,63 @@ import json
 import os
 from random import choice
 
+import numpy as np
+
+from parameters import PARAM_INFO
+
 LIB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'libdata')
 LIB_PARAMS_JSON_PATH = os.path.join(LIB_PATH, "params.json")
+
+def fit_into(x, a, b):
+    return max(min(x, b), a)
+
+def gene2params(gene):
+    """Convert from gene format (for one cell type) to params format (for
+    three cell types)."""
+    adh = np.exp(np.tan(fit_into(gene["Adhesion"], -0.99, 0.99)*np.pi/2))
+    params = {
+        "Alignment Range": gene["Alignment Range"],
+        "Pinned Cells": ["none"] * 3,
+        "Interaction Force": gene["Interaction Force"],
+        "Gradient Intensity": [gene["Gradient Intensity"],
+            0.0,
+            0.0
+        ],
+        "Cell Ratio": [1.0, 0.0, 0.0],
+        "Alignment Force": gene["Alignment Force"],
+        "Noise Intensity": gene["Noise Intensity"],
+        "Angular Inertia": gene["Angular Inertia"],
+        "Adhesion": [
+            [round(adh, PARAM_INFO["Adhesion"]["roundto"]), 0., 0.],
+            [0., 0., 0.],
+            [0., 0., 0.]
+        ],
+        "Gradient Direction": [gene["Gradient Direction"], 0.0, 0.0],
+        "Cell Density": gene["Cell Density"],
+        "Velocity": [gene["Velocity"], 0., 0.],
+        "Interaction Range": gene["Interaction Range"]
+    }
+    # Rounding
+    for each in params:
+        if isinstance(params[each], list):
+            if isinstance(params[each][0], int) or isinstance(params[each][0], float):
+                params[each][0] = round(params[each][0], PARAM_INFO[each]["roundto"])
+        elif isinstance(params[each], int) or isinstance(params[each], float):
+            params[each] = round(params[each], PARAM_INFO[each]["roundto"])
+
+    return params
+
+def load_from_files(input_file_name):
+    """ Load JSON and return params dictoinary."""
+    with open(input_file_name, "r") as infile:
+        temp = json.load(infile)
+        if "gene" in temp:
+            gene = temp["gene"]
+        elif "Gradient Intensity" in temp:
+            gene = temp
+        else:
+            raise IOError("Failed to open gene. This file does not have the correct format.")
+    return gene2params(gene)
 
 
 def save_session_data(output_file_name, session_data):
