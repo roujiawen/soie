@@ -455,7 +455,6 @@ class App(tk.Frame):
         """Define actions to be taken when open-gene-from-library commmand
         is called, i.e., Menu Bar >> File >> Open Gene from Library...
         >> Open."""
-        print params
         self.frames.insert_lib.chosen_gene = params
         self._change_title("Insert from Library")
         self.frames.sims.to_choose_mode(multiple=True)
