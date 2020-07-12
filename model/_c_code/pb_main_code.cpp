@@ -3,7 +3,7 @@ double grad_i_x, grad_i_y, align_i_x, align_i_y, f_i_x, f_i_y;
 double beta_ij, ar_slope, ar_interc, r, temp, noise, c, s, v0_i, dis_x, dis_y;
 double stat_align_x, stat_align_y, cm_x, cm_y, rel_pos_x, rel_pos_y;
 double sum_c_theta_x, sum_s_theta_x, sum_c_theta_y, sum_s_theta_y;
-double stat_angular, stat_seg, stat_clu;
+double stat_angular, stat_seg, stat_clu, stat_angular_norm, temp1, temp2;
 int ingroup_nb, total_nb;
 
 for (ith_step = 0; ith_step < steps; ith_step++) {
@@ -217,12 +217,31 @@ for (ith_step = 0; ith_step < steps; ith_step++) {
     (2 * M_PI);
 
     stat_angular = 0;
-    for (i = 1; i < n; i++) {
-      rel_pos_x = pb_dist(cm_x, pos_x[i], size_x);
-      rel_pos_y = pb_dist(cm_y, pos_y[i], size_y);
-      stat_angular += rel_pos_x * dir_y[i] - rel_pos_y * dir_x[i];
+    stat_angular_norm = 0;
+
+    start_index = 0;
+    for (k = 0; k < 3; k++) {
+      end_index = start_index + n_per_species[k];
+      temp1 = 0;
+      temp2 = 0;
+      if (pinned[k] == 0) {
+        // Only if the cell type is not pinned
+        v0_i = v0[k];
+        for (i = start_index; i < end_index; i++) {
+          rel_pos_x = pb_dist(cm_x, pos_x[i], size_x);
+          rel_pos_y = pb_dist(cm_y, pos_y[i], size_y);
+          temp1 += rel_pos_x * dir_y[i] - rel_pos_y * dir_x[i];
+          temp2 += sqrt(pow(rel_pos_x,2) + pow((rel_pos_y),2));
+        }
+        stat_angular += temp1 * v0_i;
+        stat_angular_norm += temp2 * v0_i;
+      }
+      start_index = end_index;
     }
-    global_stats[ith_step] = abs(stat_angular) / eff_nop;
+
+    if (stat_angular_norm > 0) {
+      global_stats[ith_step] = abs(stat_angular) / stat_angular_norm;
+    }
 
     // ORDER PARAMETER (1*steps+ith_step)
     global_stats[steps + ith_step] = sqrt(pow(stat_align_x, 2) +
